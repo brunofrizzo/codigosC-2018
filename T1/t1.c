@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-void le_dimensao(int *linhas, int *colunas) {
+void le_dimensao(int *num_linhas, int *num_colunas) {
 	printf("Informe o numero de linhas e colunas da matriz: \n");
-	scanf("%d %d", linhas, colunas);
+	scanf("%d %d", num_linhas, num_colunas);
 }
 
 int** cria_matriz(int linhas, int colunas) {
@@ -27,11 +27,7 @@ void imprime_matriz(int **m, int l, int c) {
 
 	for (i=0; i < l; i++) {
 		for(j=0; j < c; j++) {
-			if (m[i][j] == 1) {
-				printf("[&] ");
-			} else {
-				printf("[%d] ", m[i][j]);
-			}
+			printf("[%d] ", m[i][j]);	
 			if (j == c - 1)
 				printf("\n");
 		}
@@ -71,12 +67,12 @@ int verifica_validade_navios(int v[], int l, int c) {
 
 }
 
-int validade_direcao_navio1(int direcao, int l, int c, int **m, int linhas, int colunas) {
+int validade_posicao_navio1(int direcao, int l, int c, int **m, int linhas, int colunas) {
 	int validade=0;
 
 	if(m[l][c] == 0) {
 		if (direcao == 1){
-			if(l-1 < 1){
+			if(l-1 < 0){
 				validade = 0;
 			} else {
 				if (m[l-1][c] == 0) {
@@ -86,26 +82,6 @@ int validade_direcao_navio1(int direcao, int l, int c, int **m, int linhas, int 
 				}
 			}
 		}else if (direcao == 2) {
-			if (c-1 < 1) {
-				validade = 0;
-			}else{
-				if (m[l][c-1] == 0) {
-					validade = 1;
-				}else{
-					validade = 0;
-				}
-			}
-		} else if (direcao == 3) {
-			if (l+1 > linhas) {
-				validade = 0;
-			}else{
-				if (m[l+1][c] == 0) {
-					validade = 1;
-				}else{
-					validade = 0;
-				}
-			}
-		} else {
 			if (c+1 > colunas) {
 				validade = 0;
 			}else {
@@ -115,6 +91,8 @@ int validade_direcao_navio1(int direcao, int l, int c, int **m, int linhas, int 
 					validade = 0;
 				}
 			}
+		} else {
+			validade = 0;
 		}
 	} else {
 		validade = 0;
@@ -123,12 +101,12 @@ int validade_direcao_navio1(int direcao, int l, int c, int **m, int linhas, int 
 	return validade;
 }
 
-int validade_direcao_navio2(int direcao, int l, int c, int **m, int linhas, int colunas) {
+int validade_posicao_navio2(int direcao, int l, int c, int **m, int linhas, int colunas) {
 	int validade=0;
 
 	if(m[l][c] == 0) {
 		if (direcao == 1){
-			if (l-2 < 1) {
+			if (l-2 < 0) {
 				validade = 0;
 			} else {
 				if (m[l-1][c] == 0) {
@@ -142,34 +120,6 @@ int validade_direcao_navio2(int direcao, int l, int c, int **m, int linhas, int 
 				}
 			}
 		} else if (direcao == 2) {
-			if (c-2 < 1) {
-				validade = 0;
-			}else{
-				if (m[l][c-1] == 0) {
-					if (m[l][c-2] == 0) {
-						validade = 1;
-					}else{
-						validade = 0;
-					}
-				}else{
-					validade = 0;
-				}
-			}
-		} else if (direcao == 3) {
-			if (l+2 > linhas) {
-				validade = 0;
-			}else{
-				if (m[l+1][c] == 0) {
-					if (m[l+2][c] == 0) {
-						validade = 1;
-					}else{
-						validade = 0;
-					}
-				}else{
-					validade = 0;
-				}
-			}
-		} else {
 			if (c+2 > colunas) {
 				validade = 0;
 			}else{
@@ -183,7 +133,9 @@ int validade_direcao_navio2(int direcao, int l, int c, int **m, int linhas, int 
 					validade = 0;
 				}
 			}
-		} 
+		} else {
+			validade = 0;
+		}
 	} else{
 		validade = 0;
 	}
@@ -191,12 +143,12 @@ int validade_direcao_navio2(int direcao, int l, int c, int **m, int linhas, int 
 	return validade;
 }
 
-int validade_direcao_navio3(int direcao, int l, int c, int **m, int linhas, int colunas) {
+int validade_posicao_navio3(int direcao, int l, int c, int **m, int linhas, int colunas) {
 	int validade=0;
 
 	if (m[l][c] == 0) {
 		if (direcao == 1){
-			if (l-3 < 1) {
+			if (l-3 < 0) {
 				validade = 0;
 			}else{
 				if (m[l-1][c] == 0) {
@@ -213,43 +165,7 @@ int validade_direcao_navio3(int direcao, int l, int c, int **m, int linhas, int 
 					validade = 0;
 				}
 			}
-		} else if (direcao == 2) {
-			if (c-3 < 1) {
-				validade = 0;
-			}else{
-				if (m[l][c-1] == 0) {
-					if (m[l][c-2] == 0) {
-						if (m[l][c-3] == 0) {
-							validade = 1;
-						} else {
-							validade = 0;
-						}
-					}else{
-						validade = 0;
-					}
-				}else{
-					validade = 0;
-				}
-			}
-		} else if (direcao == 3) {
-			if (l+3 > linhas) {
-				validade = 0;
-			}else{
-				if (m[l+1][c] == 0) {
-					if (m[l+2][c] == 0) {
-						if (m[l+3][c] == 0) {
-							validade = 1;
-						} else {
-							validade = 0;
-						}
-					}else{
-						validade = 0;
-					}
-				}else{
-					validade = 0;
-				}
-			}
-		} else {
+		} else if (direcao == 2){
 			if (c+3 > colunas) {
 				validade = 0;
 			} else{
@@ -267,6 +183,8 @@ int validade_direcao_navio3(int direcao, int l, int c, int **m, int linhas, int 
 					validade = 0;
 				}	
 			}
+		} else {
+			validade = 0;
 		}
 	}else{
 		validade = 0;
@@ -275,12 +193,12 @@ int validade_direcao_navio3(int direcao, int l, int c, int **m, int linhas, int 
 	return validade;
 }
 
-int validade_direcao_navio4(int direcao, int l, int c, int **m, int linhas, int colunas) {
+int validade_posicao_navio4(int direcao, int l, int c, int **m, int linhas, int colunas) {
 	int validade=0;
 
 	if (m[l][c] == 0) {
 		if (direcao == 1){
-			if (l-4 < 1) {
+			if (l-4 < 0) {
 				validade = 0;
 			}else{
 				if (m[l-1][c] == 0) {
@@ -302,50 +220,6 @@ int validade_direcao_navio4(int direcao, int l, int c, int **m, int linhas, int 
 				}
 			}
 		} else if (direcao == 2) {
-			if (c-4 < 1) {
-				validade = 0;
-			}else{
-				if (m[l][c-1] == 0) {
-					if (m[l][c-2] == 0) {
-						if (m[l][c-3] == 0) {
-							if (m[l][c-4] == 0) {
-								validade = 1;
-							}else{
-								validade = 0;
-							}
-						} else {
-							validade = 0;
-						}
-					}else{
-						validade = 0;
-					}
-				}else{
-					validade = 0;
-				}
-			}
-		} else if (direcao == 3) {
-			if (l+4 > linhas) {
-				validade = 0;
-			}else{
-				if (m[l+1][c] == 0) {
-					if (m[l+2][c] == 0) {
-						if (m[l+3][c] == 0) {
-							if (m[l+4][c] == 0) {
-								validade = 1;
-							}else{
-								validade = 0;
-							}
-						} else {
-							validade = 0;
-						}
-					}else{
-						validade = 0;
-					}
-				}else{
-					validade = 0;
-				}
-			}
-		} else {
 			if (c+4 > colunas) {
 				validade = 0;
 			}else{
@@ -367,6 +241,8 @@ int validade_direcao_navio4(int direcao, int l, int c, int **m, int linhas, int 
 					validade = 0;
 				}
 			}
+		} else {
+			validade = 0;
 		}
 	}else{
 		validade = 0;
@@ -375,147 +251,114 @@ int validade_direcao_navio4(int direcao, int l, int c, int **m, int linhas, int 
 	return validade;
 }
 
-void insere_navio(int tipo_navio, int linhas, int colunas, int **m) {
+void insere_navio_random(int tipo_navio, int linhas, int colunas, int **m, int num_navio) {
 
-	int i, l, c, direcao, validade = 0;
+	int l, c, direcao, validade = 0;
 
 	switch (tipo_navio) {
 
 		case 1:
 			l = num_rand(linhas)-1;
 			c = num_rand(colunas)-1;
-			direcao = num_rand(4);
+			direcao = num_rand(2);
 
-			//Verifica se ponto aleatorio nao esta ocupado por um navio
-			validade = validade_direcao_navio1(direcao, l, c, m, linhas-1, colunas-1);
+			//Verifica se o ponto gerado nao esta ocupado por um navio e se o navio cabe na direcao gerada
+			validade = validade_posicao_navio1(direcao, l, c, m, linhas-1, colunas-1);
 			while(validade == 0) { 
 				l = num_rand(linhas)-1;
 				c = num_rand(colunas)-1;
-				direcao = num_rand(4);
-				validade = validade_direcao_navio1(direcao, l, c, m, linhas-1, colunas-1);
+				direcao = num_rand(2);
+				validade = validade_posicao_navio1(direcao, l, c, m, linhas-1, colunas-1);
 			}
 
-			printf("Navio 1. Ponto: %d - %d. Direcao: %d. Validade = %d\n", l+1, c+1, direcao, validade);
-
+			//Coloca o navio no tabuleiro de acordo com a direcao gerada
 			if (direcao == 1) {
-				m[l-1][c] = 1;
-			}else if (direcao == 2) {
-				m[l][c-1] = 1;
-			} else if (direcao == 3) {
-				m[l+1][c] = 1;
+				m[l-1][c] = num_navio;
 			}else{
-				m[l][c+1] = 1;
+				m[l][c+1] = num_navio;
 			}
-			m[l][c] = 1;
+			m[l][c] = num_navio;
 		break;
 
 		case 2:
 			l = num_rand(linhas)-1;
 			c = num_rand(colunas)-1;
-			direcao = num_rand(4);
+			direcao = num_rand(2);
 
-			//Verifica se ponto aleatorio nao esta ocupado por um navio
-			validade = validade_direcao_navio2(direcao, l, c, m, linhas-1, colunas-1);
+			//Verifica se o ponto gerado nao esta ocupado por um navio e se o navio cabe na direcao gerada
+			validade = validade_posicao_navio2(direcao, l, c, m, linhas-1, colunas-1);
 			while(validade == 0) { 
 				l = num_rand(linhas)-1;
 				c = num_rand(colunas)-1;
-				direcao = num_rand(4);
-				validade = validade_direcao_navio2(direcao, l, c, m, linhas-1, colunas-1);
+				direcao = num_rand(2);
+				validade = validade_posicao_navio2(direcao, l, c, m, linhas-1, colunas-1);
 			} 
 
-			printf("Navio 2. Ponto: %d - %d. Direcao: %d. Validade = %d\n", l+1, c+1, direcao, validade);
-
+			//Coloca o navio no tabuleiro de acordo com a direcao gerada
 			if (direcao == 1) {
-				m[l-1][c] = 1;
-				m[l-2][c] = 1;
-			}else if (direcao == 2) {
-				m[l][c-1] = 1;
-				m[l][c-2] = 1;
-			} else if (direcao == 3) {
-				m[l+1][c] = 1;
-				m[l+2][c] = 1;
+				m[l-1][c] = num_navio;
+				m[l-2][c] = num_navio;
 			}else{
-				m[l][c+1] = 1;
-				m[l][c+2] = 1;
+				m[l][c+1] = num_navio;
+				m[l][c+2] = num_navio;
 			}
-			m[l][c] = 1;
+			m[l][c] = num_navio;
 		break;
 
 		case 3:
 			l = num_rand(linhas)-1;
 			c = num_rand(colunas)-1;
-			direcao = num_rand(4);
+			direcao = num_rand(2);
 
-			//Verifica se ponto aleatorio nao esta ocupado por um navio
-			validade = validade_direcao_navio3(direcao, l, c, m, linhas-1, colunas-1);
+			//Verifica se o ponto gerado nao esta ocupado por um navio e se o navio cabe na direcao gerada
+			validade = validade_posicao_navio3(direcao, l, c, m, linhas-1, colunas-1);
 			while(validade == 0) { 
 				l = num_rand(linhas)-1;
 				c = num_rand(colunas)-1;
-				direcao = num_rand(4);
-				validade = validade_direcao_navio3(direcao, l, c, m, linhas-1, colunas-1);
+				direcao = num_rand(2);
+				validade = validade_posicao_navio3(direcao, l, c, m, linhas-1, colunas-1);
 			}
 
-			printf("Navio 3. Ponto: %d - %d. Direcao: %d. Validade = %d\n", l+1, c+1, direcao, validade);
-
-
+			//Coloca o navio no tabuleiro de acordo com a direcao gerada
 			if (direcao == 1) {
-				m[l-1][c] = 1;
-				m[l-2][c] = 1;
-				m[l-3][c] = 1;
-			}else if (direcao == 2) {
-				m[l][c-1] = 1;
-				m[l][c-2] = 1;
-				m[l][c-3] = 1;
-			} else if (direcao == 3) {
-				m[l+1][c] = 1;
-				m[l+2][c] = 1;
-				m[l+3][c] = 1;
+				m[l-1][c] = num_navio;
+				m[l-2][c] = num_navio;
+				m[l-3][c] = num_navio;
 			}else{
-				m[l][c+1] = 1;
-				m[l][c+2] = 1;
-				m[l][c+3] = 1;
+				m[l][c+1] = num_navio;
+				m[l][c+2] = num_navio;
+				m[l][c+3] = num_navio;
 			}
-			m[l][c] = 1;
+			m[l][c] = num_navio;
 		break;
 
 		case 4:
 			l = num_rand(linhas)-1;
 			c = num_rand(colunas)-1;
-			direcao = num_rand(4);
+			direcao = num_rand(2);
 
-			//Verifica se ponto aleatorio nao esta ocupado por um navio
-			validade = validade_direcao_navio4(direcao, l, c, m, linhas-1, colunas-1);
+			//Verifica se o ponto gerado nao esta ocupado por um navio e se o navio cabe na direcao gerada
+			validade = validade_posicao_navio4(direcao, l, c, m, linhas-1, colunas-1);
 			while(validade == 0) { 
 				l = num_rand(linhas)-1;
 				c = num_rand(colunas)-1;
-				direcao = num_rand(4);
-				validade = validade_direcao_navio4(direcao, l, c, m, linhas-1, colunas-1);
+				direcao = num_rand(2);
+				validade = validade_posicao_navio4(direcao, l, c, m, linhas-1, colunas-1);
 			}
 
-			printf("Navio 4. Ponto: %d - %d. Direcao: %d. Validade = %d\n", l+1, c+1, direcao, validade);
-
+			//Coloca o navio no tabuleiro de acordo com a direcao gerada
 			if (direcao == 1) {
-				m[l-1][c] = 1;
-				m[l-2][c] = 1;
-				m[l-3][c] = 1;
-				m[l-4][c] = 1;
-			}else if (direcao == 2) {
-				m[l][c-1] = 1;
-				m[l][c-2] = 1;
-				m[l][c-3] = 1;
-				m[l][c-4] = 1;
-			} else if (direcao == 3) {
-				m[l+1][c] = 1;
-				m[l+2][c] = 1;
-				m[l+3][c] = 1;
-				m[l+4][c] = 1;
+				m[l-1][c] = num_navio;
+				m[l-2][c] = num_navio;
+				m[l-3][c] = num_navio;
+				m[l-4][c] = num_navio;
 			}else{
-				m[l][c+1] = 1;
-				m[l][c+2] = 1;
-				m[l][c+3] = 1;
-				m[l][c+4] = 1;
+				m[l][c+1] = num_navio;
+				m[l][c+2] = num_navio;
+				m[l][c+3] = num_navio;
+				m[l][c+4] = num_navio;
 			}
-			m[l][c] = 1;
+			m[l][c] = num_navio;
 		break;
 
 		default:
@@ -524,52 +367,269 @@ void insere_navio(int tipo_navio, int linhas, int colunas, int **m) {
 	} //end switch
 }
 
+int verifica_navios_derrubados(int **m, int l, int c) {
+	int i, j, validade = 1;
+
+	for (i=0; i<l; i++) {
+		for(j=0; j<c; j++){
+			if (m[i][j] > 0) {
+				validade = 0;
+			}
+		}
+	}
+
+	return validade;
+}
+
+void insere_navio_posicao(int tipo_navio, int l, int c, int **m, int num_navio, int direcao) {
+	switch (tipo_navio) {
+
+		case 1:
+			//Coloca o navio no tabuleiro de acordo com a direcao gerada
+			if (direcao == 1) {
+				m[l-1][c] = num_navio;
+			}else{
+				m[l][c+1] = num_navio;
+			}
+			m[l][c] = num_navio;
+		break;
+
+		case 2:
+			//Coloca o navio no tabuleiro de acordo com a direcao gerada
+			if (direcao == 1) {
+				m[l-1][c] = num_navio;
+				m[l-2][c] = num_navio;
+			}else{
+				m[l][c+1] = num_navio;
+				m[l][c+2] = num_navio;
+			}
+			m[l][c] = num_navio;
+		break;
+
+		case 3:
+			//Coloca o navio no tabuleiro de acordo com a direcao gerada
+			if (direcao == 1) {
+				m[l-1][c] = num_navio;
+				m[l-2][c] = num_navio;
+				m[l-3][c] = num_navio;
+			}else{
+				m[l][c+1] = num_navio;
+				m[l][c+2] = num_navio;
+				m[l][c+3] = num_navio;
+			}
+			m[l][c] = num_navio;
+		break;
+
+		case 4:
+			//Coloca o navio no tabuleiro de acordo com a direcao gerada
+			if (direcao == 1) {
+				m[l-1][c] = num_navio;
+				m[l-2][c] = num_navio;
+				m[l-3][c] = num_navio;
+				m[l-4][c] = num_navio;
+			}else{
+				m[l][c+1] = num_navio;
+				m[l][c+2] = num_navio;
+				m[l][c+3] = num_navio;
+				m[l][c+4] = num_navio;
+			}
+			m[l][c] = num_navio;
+		break;
+
+		default:
+			printf("erro\n");
+			
+	} //end switch
+} //end funcao
+
 int main () {
 	
-	int opcao, linhas_m1, colunas_m1, i, vet_navios[4];
+	int opcao, num_linhas_tabuleiro, num_colunas_tabuleiro, i, vet_navios[4], x, y, cont_navios=0, num_navio=0, navio_derrubado=0, direcao=0, navio_inserido=0;
+	srand(time(NULL));
 
 	printf("Digite 1 se deseja jogar sozinho ou 2 se deseja jogar com o computador: \n");
 	scanf("%d", &opcao);
 
 	if (opcao == 1) {
-
-	srand(time(NULL));
-	le_dimensao(&linhas_m1, &colunas_m1);
-	// printf("n linhas = %d\n", linhas_m1);
-	// printf("n colunas = %d\n", colunas_m1);
-	// printf("numero l gerado = %d\n", num_rand(linhas_m1));
-	// printf("numero c gerado = %d\n", num_rand(colunas_m1));
-
-
-		int **matriz = cria_matriz(linhas_m1, colunas_m1);
-
-		// imprime_matriz(matriz, linhas_m1, colunas_m1);
-
+		le_dimensao(&num_linhas_tabuleiro, &num_colunas_tabuleiro);
+		int **matriz = cria_matriz(num_linhas_tabuleiro, num_colunas_tabuleiro);
 		le_quant_navios(vet_navios);
 
-		if (verifica_validade_navios(vet_navios, linhas_m1, colunas_m1) == 1) {
+		if (verifica_validade_navios(vet_navios, num_linhas_tabuleiro, num_colunas_tabuleiro) == 1) { //Verifica se os navios ocupam menos de 50% do tabuleiro
 
 			for (i=0; i<vet_navios[0]; i++){
-				insere_navio(1, linhas_m1, colunas_m1, matriz);
+				cont_navios++;
+				insere_navio_random(1, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz, cont_navios);
 			}
 			for (i=0; i<vet_navios[1]; i++){
-				insere_navio(2, linhas_m1, colunas_m1, matriz);
+				cont_navios++;
+				insere_navio_random(2, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz, cont_navios);
 			}
 			for (i=0; i<vet_navios[2]; i++){
-				insere_navio(3, linhas_m1, colunas_m1, matriz);
+				cont_navios++;
+				insere_navio_random(3, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz, cont_navios);
 			}
 			for (i=0; i<vet_navios[3]; i++){
-				insere_navio(4, linhas_m1, colunas_m1, matriz);
+				cont_navios++;
+				insere_navio_random(4, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz, cont_navios);
 			}
 
-			imprime_matriz(matriz, linhas_m1, colunas_m1);
+			imprime_matriz(matriz, num_linhas_tabuleiro, num_colunas_tabuleiro);
+
+			while(verifica_navios_derrubados(matriz, num_linhas_tabuleiro, num_colunas_tabuleiro) == 0) {
+				printf("informe um ponto(linha-coluna): \n");
+				scanf("%d %d", &x, &y);
+
+				if (matriz[x-1][y-1] > 0) {
+					printf("Acertou em um navio!\n");
+					num_navio = matriz[x-1][y-1];
+					matriz[x-1][y-1] = 0;
+					navio_derrubado = 1;
+
+					for (i=0; i<num_colunas_tabuleiro; i++){ //Verifica toda a linha e toda a coluna do ponto, se existe ainda parte do navio
+						if (matriz[x-1][i] == num_navio) {
+							navio_derrubado = 0;
+						}
+						if (matriz[i][y-1] == num_navio) {
+							navio_derrubado = 0;
+						}
+					}
+
+					if (navio_derrubado == 1) {
+						printf("Derrubou um navio!!!!\n");
+					}
+				} else{
+					printf("Acertou na água!\n");
+				}
+				imprime_matriz(matriz, num_linhas_tabuleiro, num_colunas_tabuleiro);
+			}
+
 
 		} else {
 			printf("Numero de navios informados inválido.\n");
 		}
 
-	} else if (opcao == 0) {
+	} else if (opcao == 2) {
 
+		cont_navios=0;
+		le_dimensao(&num_linhas_tabuleiro, &num_colunas_tabuleiro); 
+		int **matriz1 = cria_matriz(num_linhas_tabuleiro, num_colunas_tabuleiro);
+		int **matriz2 = cria_matriz(num_linhas_tabuleiro, num_colunas_tabuleiro);
+		le_quant_navios(vet_navios);
+
+		if (verifica_validade_navios(vet_navios, num_linhas_tabuleiro, num_colunas_tabuleiro) == 1) { //Verifica se os navios ocupam menos de 50% do tabuleiro
+
+			for (i=0; i<vet_navios[0]; i++){
+				cont_navios++;
+				insere_navio_random(1, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz2, cont_navios);
+			}
+			for (i=0; i<vet_navios[1]; i++){
+				cont_navios++;
+				insere_navio_random(2, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz2, cont_navios);
+			}
+			for (i=0; i<vet_navios[2]; i++){
+				cont_navios++;
+				insere_navio_random(3, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz2, cont_navios);
+			}
+			for (i=0; i<vet_navios[3]; i++){
+				cont_navios++;
+				insere_navio_random(4, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz2, cont_navios);
+			}
+
+			printf("MATRIZ DO USUÁRIO\n");
+			imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
+			printf("-----------------------------------------\nMATRIZ DO COMPUTADOR\n");
+			imprime_matriz(matriz2, num_linhas_tabuleiro, num_colunas_tabuleiro);
+
+			cont_navios=0;
+
+			for (i=0; i<vet_navios[0]; i++){
+				navio_inserido = 0;
+				while(navio_inserido == 0) {
+					printf("Informe um ponto(linha-coluna) e uma direcao(1 para vertical e 2 para horizontal) para inserir um navio de DOIS lugares: \n");
+					scanf("%d %d %d", &x, &y, &direcao);
+					if (x > num_linhas_tabuleiro || y > num_colunas_tabuleiro || x < 1 || y < 1) {
+						navio_inserido = 0;
+						printf("Posicão ou direção inválida.\n");
+					} else {
+						if (validade_posicao_navio1(direcao, x-1, y-1, matriz1, num_linhas_tabuleiro-1, num_colunas_tabuleiro-1) == 1) {
+							cont_navios++;
+							insere_navio_posicao(1, x-1, y-1, matriz1, cont_navios, direcao);
+							imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
+							navio_inserido = 1;
+						} else {
+							printf("Posicão ou direção inválida.\n");
+							navio_inserido = 0;
+						}
+					}
+				}
+			}
+			for (i=0; i<vet_navios[1]; i++){
+				navio_inserido = 0;
+				while(navio_inserido == 0) {
+					printf("Informe um ponto(linha-coluna) e uma direcao(1 para vertical e 2 para horizontal) para inserir um navio de TRÊS lugares: \n");
+					scanf("%d %d %d", &x, &y, &direcao);
+					if (x > num_linhas_tabuleiro || y > num_colunas_tabuleiro || x < 1 || y < 1) {
+						navio_inserido = 0;
+						printf("Posicão ou direção inválida.\n");
+					} else {
+						if (validade_posicao_navio2(direcao, x-1, y-1, matriz1, num_linhas_tabuleiro-1, num_colunas_tabuleiro-1) == 1) {
+							cont_navios++;
+							insere_navio_posicao(2, x-1, y-1, matriz1, cont_navios, direcao);
+							imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
+							navio_inserido = 1;
+						} else {
+							printf("Posicão ou direção inválida.\n");
+							navio_inserido = 0;
+						}
+					}
+				}
+			}
+			for (i=0; i<vet_navios[2]; i++){
+				navio_inserido = 0;
+				while(navio_inserido == 0) {
+					printf("Informe um ponto(linha-coluna) e uma direcao(1 para vertical e 2 para horizontal) para inserir um navio de QUATRO lugares: \n");
+					scanf("%d %d %d", &x, &y, &direcao);
+					if (x > num_linhas_tabuleiro || y > num_colunas_tabuleiro || x < 1 || y < 1) {
+						navio_inserido = 0;
+						printf("Posicão ou direção inválida.\n");
+					} else {
+						if (validade_posicao_navio3(direcao, x-1, y-1, matriz1, num_linhas_tabuleiro-1, num_colunas_tabuleiro-1) == 1) {
+							cont_navios++;
+							insere_navio_posicao(3, x-1, y-1, matriz1, cont_navios, direcao);
+							imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
+							navio_inserido = 1;
+						} else {
+							printf("Posicão ou direção inválida.\n");
+							navio_inserido = 0;
+						}
+					}
+				}
+			}
+			for (i=0; i<vet_navios[3]; i++){
+				navio_inserido = 0;
+				while(navio_inserido == 0) {
+					printf("Informe um ponto(linha-coluna) e uma direcao(1 para vertical e 2 para horizontal) para inserir um navio de CINCO lugares: \n");
+					scanf("%d %d %d", &x, &y, &direcao);
+					if (x > num_linhas_tabuleiro || y > num_colunas_tabuleiro || x < 1 || y < 1) {
+						navio_inserido = 0;
+						printf("Posicão ou direção inválida.\n");
+					} else {
+						if (validade_posicao_navio4(direcao, x-1, y-1, matriz1, num_linhas_tabuleiro-1, num_colunas_tabuleiro-1) == 1) {
+							cont_navios++;
+							insere_navio_posicao(4, x-1, y-1, matriz1, cont_navios, direcao);
+							imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
+							navio_inserido = 1;
+						} else {
+							printf("Posicão ou direção inválida.\n");
+							navio_inserido = 0;
+						}
+					}
+				}
+			}
+
+
+		}
 
 
 	} else {

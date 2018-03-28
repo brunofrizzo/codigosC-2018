@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 
 void le_dimensao(int *num_linhas, int *num_colunas) {
-	printf("Informe o numero de linhas e colunas da matriz: \n");
+	printf("Informe o numero de linhas e colunas do tabuleiro: \n");
 	scanf("%d %d", num_linhas, num_colunas);
 }
 
@@ -25,13 +26,14 @@ int** cria_matriz(int linhas, int colunas) {
 void imprime_matriz(int **m, int l, int c) {
 	int i, j;
 
+	printf("\n");
 	for (i=0; i < l; i++) {
 		for(j=0; j < c; j++) {
 			printf("[%d] ", m[i][j]);	
-			if (j == c - 1)
-				printf("\n");
 		}
+		printf("\n");
 	}
+	printf("\n");
 }
 
 int num_rand(int limite) {
@@ -367,18 +369,18 @@ void insere_navio_random(int tipo_navio, int linhas, int colunas, int **m, int n
 	} //end switch
 }
 
-int verifica_navios_derrubados(int **m, int l, int c) {
-	int i, j, validade = 1;
+int verifica_navios_derrubados(int **m, int linha, int coluna) {
+	int i, j;
 
-	for (i=0; i<l; i++) {
-		for(j=0; j<c; j++){
+	for (i=0; i<linha; i++) {
+		for(j=0; j<coluna; j++){
 			if (m[i][j] > 0) {
-				validade = 0;
+				return 0;
 			}
 		}
 	}
 
-	return validade;
+	return 1;
 }
 
 void insere_navio_posicao(int tipo_navio, int l, int c, int **m, int num_navio, int direcao) {
@@ -442,9 +444,92 @@ void insere_navio_posicao(int tipo_navio, int l, int c, int **m, int num_navio, 
 	} //end switch
 } //end funcao
 
+int tiro_dentro_tabuleiro(int x, int y, int num_linhas, int num_colunas) {
+	x = x-1;
+	y = y-1;
+
+	if (x < 0 || y < 0 || x >= num_linhas || y >= num_colunas) {
+		return 0;
+	} else{
+		return 1;
+	}
+}
+
+int verifica_acertou_navio(int x, int y, int **m, int num_linhas, int num_colunas) {
+	int num_navio=0, navio_derrubado, i;
+
+	if (m[x-1][y-1] > 0) {
+		num_navio = m[x-1][y-1];
+		m[x-1][y-1] = 0;
+		navio_derrubado = 1;
+
+		for (i=0; i<num_colunas; i++){ //Verifica toda a linha e toda a coluna do ponto, se existe ainda parte do navio
+			if (m[x-1][i] == num_navio) {
+				navio_derrubado = 0;
+			}
+		}
+		for (i=0; i<num_linhas; i++){
+			if (m[i][y-1] == num_navio) {
+				navio_derrubado = 0;
+			}
+		}
+
+		if (navio_derrubado == 1) {
+			return 2;
+		}
+
+		return num_navio;
+
+	} else{
+		return 0;
+	}
+}
+
+bool jogo_acabou(int **m1, int **m2, int num_linhas, int num_colunas) {
+	if ((verifica_navios_derrubados(m1, num_linhas, num_colunas) == 1) || (verifica_navios_derrubados(m2, num_linhas, num_colunas) == 1)) {
+		return true;
+	}else{
+		return false;
+	}
+}
+
+bool validade_direcao_chutada(int direcao, int x, int y, int num_linhas, int num_colunas) {
+		if (direcao==1){
+			if(tiro_dentro_tabuleiro(x-1, y, num_linhas_tabuleiro, num_colunas_tabuleiro) == 1){ //Verifica se o ponto chutado pelo computador esta dentro do tabuleiro
+				x = x-1;
+				return true;
+			}else{
+				return false;
+			}
+		}else if (direcao==2){
+			if (tiro_dentro_tabuleiro(x, y-1, num_linhas_tabuleiro, num_colunas_tabuleiro) == 1){
+				y = y-1;
+				return true;
+			}else{
+				return false;
+			}
+		} else if (direcao==3){
+			if (tiro_dentro_tabuleiro(x+1, y, num_linhas_tabuleiro, num_colunas_tabuleiro) == 1){
+				x = x+1;
+				return true;
+			}else{
+				return false;
+			}
+		} else{
+			if (tiro_dentro_tabuleiro(x, y+1, num_linhas_tabuleiro, num_colunas_tabuleiro) == 1){
+				y = y+1;
+				return true;
+			}else{
+				return false;
+			}
+		}
+}
+
 int main () {
 	
-	int opcao, num_linhas_tabuleiro, num_colunas_tabuleiro, i, vet_navios[4], x, y, cont_navios=0, num_navio=0, navio_derrubado=0, direcao=0, navio_inserido=0;
+	int opcao, num_linhas_tabuleiro, num_colunas_tabuleiro, i, vet_navios[4], x, y, cont_navios=0, num_navio=0, navio_derrubado=0, direcao=0, navio_inserido=0, validade_tiro=0,
+		ultimo_x_chutado, ultimo_y_chutado, validade_direcao, num_ultimo_navio_acertado=0;
+	bool game_over = false, acertou_ultima=false, mesma_linha, mesma_coluna;
 	srand(time(NULL));
 
 	printf("Digite 1 se deseja jogar sozinho ou 2 se deseja jogar com o computador: \n");
@@ -480,27 +565,39 @@ int main () {
 				printf("informe um ponto(linha-coluna): \n");
 				scanf("%d %d", &x, &y);
 
-				if (matriz[x-1][y-1] > 0) {
-					printf("Acertou em um navio!\n");
-					num_navio = matriz[x-1][y-1];
-					matriz[x-1][y-1] = 0;
-					navio_derrubado = 1;
+				// if (matriz[x-1][y-1] > 0) {
+				// 	printf("Acertou em um navio!\n");
+				// 	num_navio = matriz[x-1][y-1];
+				// 	matriz[x-1][y-1] = 0;
+				// 	navio_derrubado = 1;
 
-					for (i=0; i<num_colunas_tabuleiro; i++){ //Verifica toda a linha e toda a coluna do ponto, se existe ainda parte do navio
-						if (matriz[x-1][i] == num_navio) {
-							navio_derrubado = 0;
-						}
-						if (matriz[i][y-1] == num_navio) {
-							navio_derrubado = 0;
-						}
-					}
+				// 	for (i=0; i<num_colunas_tabuleiro; i++){ //Verifica toda a linha e toda a coluna do ponto, se existe ainda parte do navio
+				// 		if (matriz[x-1][i] == num_navio) {
+				// 			navio_derrubado = 0;
+				// 		}
+				// 	}
+				// 	for (i=0;i<num_linhas_tabuleiro;i++){
+				// 		if (matriz[i][y-1] == num_navio) {
+				// 			navio_derrubado = 0;
+				// 		}
+				// 	}
 
-					if (navio_derrubado == 1) {
-						printf("Derrubou um navio!!!!\n");
-					}
-				} else{
-					printf("Acertou na água!\n");
+				// 	if (navio_derrubado == 1) {
+				// 		printf("Derrubou um navio!!!!\n");
+				// 	}
+				// } else{
+				// 	printf("Acertou na água!\n");
+				// }
+
+				validade_tiro = verifica_acertou_navio(x, y, matriz, num_linhas_tabuleiro, num_colunas_tabuleiro);
+				if (validade_tiro == 0) {
+					printf("Acertou na água.\n\n");
+				} else if (validade_tiro == 2) {
+					printf("Derrubou um navio!!!!!\n\n");
+				} else {
+					printf("Acertou em um navio de numero = %d.\n\n", validade_tiro);
 				}
+
 				imprime_matriz(matriz, num_linhas_tabuleiro, num_colunas_tabuleiro);
 			}
 
@@ -536,101 +633,201 @@ int main () {
 				insere_navio_random(4, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz2, cont_navios);
 			}
 
-			printf("MATRIZ DO USUÁRIO\n");
-			imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
-			printf("-----------------------------------------\nMATRIZ DO COMPUTADOR\n");
-			imprime_matriz(matriz2, num_linhas_tabuleiro, num_colunas_tabuleiro);
-
 			cont_navios=0;
 
 			for (i=0; i<vet_navios[0]; i++){
-				navio_inserido = 0;
-				while(navio_inserido == 0) {
-					printf("Informe um ponto(linha-coluna) e uma direcao(1 para vertical e 2 para horizontal) para inserir um navio de DOIS lugares: \n");
-					scanf("%d %d %d", &x, &y, &direcao);
-					if (x > num_linhas_tabuleiro || y > num_colunas_tabuleiro || x < 1 || y < 1) {
-						navio_inserido = 0;
-						printf("Posicão ou direção inválida.\n");
-					} else {
-						if (validade_posicao_navio1(direcao, x-1, y-1, matriz1, num_linhas_tabuleiro-1, num_colunas_tabuleiro-1) == 1) {
-							cont_navios++;
-							insere_navio_posicao(1, x-1, y-1, matriz1, cont_navios, direcao);
-							imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
-							navio_inserido = 1;
-						} else {
-							printf("Posicão ou direção inválida.\n");
-							navio_inserido = 0;
-						}
-					}
-				}
+				cont_navios++;
+				insere_navio_random(1, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz1, cont_navios);
 			}
 			for (i=0; i<vet_navios[1]; i++){
-				navio_inserido = 0;
-				while(navio_inserido == 0) {
-					printf("Informe um ponto(linha-coluna) e uma direcao(1 para vertical e 2 para horizontal) para inserir um navio de TRÊS lugares: \n");
-					scanf("%d %d %d", &x, &y, &direcao);
-					if (x > num_linhas_tabuleiro || y > num_colunas_tabuleiro || x < 1 || y < 1) {
-						navio_inserido = 0;
-						printf("Posicão ou direção inválida.\n");
-					} else {
-						if (validade_posicao_navio2(direcao, x-1, y-1, matriz1, num_linhas_tabuleiro-1, num_colunas_tabuleiro-1) == 1) {
-							cont_navios++;
-							insere_navio_posicao(2, x-1, y-1, matriz1, cont_navios, direcao);
-							imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
-							navio_inserido = 1;
-						} else {
-							printf("Posicão ou direção inválida.\n");
-							navio_inserido = 0;
-						}
-					}
-				}
+				cont_navios++;
+				insere_navio_random(2, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz1, cont_navios);
 			}
 			for (i=0; i<vet_navios[2]; i++){
-				navio_inserido = 0;
-				while(navio_inserido == 0) {
-					printf("Informe um ponto(linha-coluna) e uma direcao(1 para vertical e 2 para horizontal) para inserir um navio de QUATRO lugares: \n");
-					scanf("%d %d %d", &x, &y, &direcao);
-					if (x > num_linhas_tabuleiro || y > num_colunas_tabuleiro || x < 1 || y < 1) {
-						navio_inserido = 0;
-						printf("Posicão ou direção inválida.\n");
-					} else {
-						if (validade_posicao_navio3(direcao, x-1, y-1, matriz1, num_linhas_tabuleiro-1, num_colunas_tabuleiro-1) == 1) {
-							cont_navios++;
-							insere_navio_posicao(3, x-1, y-1, matriz1, cont_navios, direcao);
-							imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
-							navio_inserido = 1;
-						} else {
-							printf("Posicão ou direção inválida.\n");
-							navio_inserido = 0;
-						}
-					}
-				}
+				cont_navios++;
+				insere_navio_random(3, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz1, cont_navios);
 			}
 			for (i=0; i<vet_navios[3]; i++){
-				navio_inserido = 0;
-				while(navio_inserido == 0) {
-					printf("Informe um ponto(linha-coluna) e uma direcao(1 para vertical e 2 para horizontal) para inserir um navio de CINCO lugares: \n");
-					scanf("%d %d %d", &x, &y, &direcao);
-					if (x > num_linhas_tabuleiro || y > num_colunas_tabuleiro || x < 1 || y < 1) {
-						navio_inserido = 0;
-						printf("Posicão ou direção inválida.\n");
-					} else {
-						if (validade_posicao_navio4(direcao, x-1, y-1, matriz1, num_linhas_tabuleiro-1, num_colunas_tabuleiro-1) == 1) {
-							cont_navios++;
-							insere_navio_posicao(4, x-1, y-1, matriz1, cont_navios, direcao);
-							imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
-							navio_inserido = 1;
-						} else {
-							printf("Posicão ou direção inválida.\n");
-							navio_inserido = 0;
-						}
-					}
-				}
+				cont_navios++;
+				insere_navio_random(4, num_linhas_tabuleiro, num_colunas_tabuleiro, matriz1, cont_navios);
 			}
 
+			printf("MATRIZ DO USUÁRIO\n");
+			imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
+			printf("\n-----------------------------------------\nMATRIZ DO COMPUTADOR\n");
+			imprime_matriz(matriz2, num_linhas_tabuleiro, num_colunas_tabuleiro);
+
+			while(true) {
+				validade_tiro=0;
+				acertou_ultima=0;
+
+				printf("VEZ DO USUÁRIO\n\nInforme um ponto(linha-coluna): \n");
+				scanf("%d %d", &x, &y);
+
+				while (tiro_dentro_tabuleiro(x-1, y-1, num_linhas_tabuleiro, num_colunas_tabuleiro) == 0) {
+					printf("Ṕonto inválido. Informe novamente um ponto(linha-coluna): \n");	
+					scanf("%d %d", &x, &y);				
+				}
+
+				validade_tiro = verifica_acertou_navio(x, y, matriz2, num_linhas_tabuleiro, num_colunas_tabuleiro);
+				if (validade_tiro == 0) {
+					printf("Acertou na água.\n\n");
+				} else if (validade_tiro == 2) {
+					printf("Derrubou um navio!!!!!\n\n");
+				} else {
+					printf("Acertou em um navio.\n\n");
+				}
+				
+				// printf("MATRIZ DO COMPUTADOR\n");
+				// imprime_matriz(matriz2, num_linhas_tabuleiro, num_colunas_tabuleiro);
+
+				printf("VEZ DO COMPUTADOR\n\n");
+
+				// if (!acertou_ultima){
+				if (num_ultimo_navio_acertado == 0) {
+					x = num_rand(10);
+					y = num_rand(10);
+					validade_tiro = verifica_acertou_navio(x, y, matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
+					if (validade_tiro==0) {
+						printf("Computador errou\n\n");
+						// ultimo_x_chutado = x;
+						// ultimo_y_chutado = y;
+					}else{
+						printf("Computador acertou no navio numero %d\n", validade_tiro);
+						// acertou_ultima = true;
+						num_ultimo_navio_acertado = validade_tiro;
+					}
+				} else{
+					printf("ACERTOU A ULTIMA\n");
+					validade_tiro=0;
+					validade_direcao=0;
+
+					while(validade_direcao == 0) {
+
+						direcao = num_rand(4);
+						printf("direcao = %d\n", direcao);
+
+						if (validade_direcao_chutada(direcao, x-1, y-1, num_linhas_tabuleiro, num_colunas_tabuleiro)) {
+							validade_direcao = 1;
+						} else{
+							validade_direcao = 0;
+						}
+
+						// if (direcao==1){
+						// 	if(tiro_dentro_tabuleiro(x-1, y, num_linhas_tabuleiro, num_colunas_tabuleiro) == 1){ //Verifica se o ponto chutado pelo computador esta dentro do tabuleiro
+						// 		x = x-1;
+						// 		// validade_tiro = verifica_acertou_navio(x, y, matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro); //Verifica se acertou em um navio e se o destruiu
+						// 		// if (validade_tiro==0) {
+						// 		// 	printf("Computador errou\n");
+						// 		// } else if (validade_tiro==2){
+						// 		// 	printf("Computador destruiu um navio\n");
+						// 		// 	acertou_ultima = false;
+						// 		// 	validade_direcao = 1;
+						// 		// 	num_ultimo_navio_acertado = 0;
+						// 		// }else{
+						// 		// 	printf("Computador acertou\n\n");
+						// 		// 	acertou_ultima = true;
+						// 		// 	mesma_linha = true;
+						// 		// 	num_ultimo_navio_acertado = validade_tiro;
+						// 		// 	validade_direcao = 1;
+						// 		// }
+						// 		validade_direcao = 1;
+						// 	}else{
+						// 		validade_direcao = 0;
+						// 	}
+						// }else if (direcao==2){
+						// 	if (tiro_dentro_tabuleiro(x, y-1, num_linhas_tabuleiro, num_colunas_tabuleiro) == 1){
+						// 		y = y-1;
+						// 		// validade_tiro = verifica_acertou_navio(x, y, matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro); //Verifica se acertou em um navio e se o destruiu
+						// 		// if (validade_tiro==0) {
+						// 		// 	printf("Computador errou\n");
+						// 		// 	validade_direcao = 0;
+						// 		// } else if (validade_tiro==2){
+						// 		// 	printf("Computador destruiu um navio\n");
+						// 		// 	acertou_ultima = false;
+						// 		// 	validade_direcao=1;
+						// 		// 	num_ultimo_navio_acertado = 0;
+						// 		// }else{
+						// 		// 	printf("Computador acertou\n\n");
+						// 		// 	acertou_ultima = true;
+						// 		// 	mesma_coluna = true;
+						// 		// 	num_ultimo_navio_acertado = validade_tiro;
+						// 		// 	validade_direcao=1;
+						// 		// }
+						// 		validade_direcao = 1;
+						// 	}else{
+						// 		validade_direcao=0;
+						// 	}
+						// } else if (direcao==3){
+						// 	if (tiro_dentro_tabuleiro(x+1, y, num_linhas_tabuleiro, num_colunas_tabuleiro) == 1){
+						// 		x = x+1;
+						// 		// validade_tiro = verifica_acertou_navio(x, y, matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro); //Verifica se acertou em um navio e se o destruiu
+						// 		// if (validade_tiro==0) {
+						// 		// 	printf("Computador errou\n");
+						// 		// 	validade_direcao = 0;
+						// 		// } else if (validade_tiro==2){
+						// 		// 	printf("Computador destruiu um navio\n");
+						// 		// 	acertou_ultima = false;
+						// 		// 	validade_direcao=1;
+						// 		// 	num_ultimo_navio_acertado = 0;
+						// 		// }else{
+						// 		// 	printf("Computador acertou\n\n");
+						// 		// 	acertou_ultima = true;
+						// 		// 	mesma_linha = true;
+						// 		// 	num_ultimo_navio_acertado = validade_tiro;
+						// 		// 	validade_direcao=1;
+						// 		// }
+						// 		validade_direcao = 1;
+						// 	}else{
+						// 		validade_direcao=0;
+						// 	}
+						// } else{
+						// 	if (tiro_dentro_tabuleiro(x, y+1, num_linhas_tabuleiro, num_colunas_tabuleiro) == 1){
+						// 		y = y+1;
+						// 		// validade_tiro = verifica_acertou_navio(x, y, matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro); //Verifica se acertou em um navio e se o destruiu
+						// 		// if (validade_tiro==0) {
+						// 		// 	printf("Computador errou\n");
+						// 		// 	validade_direcao = 0;
+						// 		// } else if (validade_tiro==2){
+						// 		// 	printf("Computador destruiu um navio\n");
+						// 		// 	acertou_ultima = false;
+						// 		// 	validade_direcao = 1;
+						// 		// 	num_ultimo_navio_acertado = 0;
+						// 		// }else{
+						// 		// 	printf("Computador acertou\n\n");
+						// 		// 	acertou_ultima = true;
+						// 		// 	mesma_coluna = true;
+						// 		// 	num_ultimo_navio_acertado = validade_tiro;
+						// 		// 	validade_direcao = 1;
+						// 		// }
+						// 		validade_direcao = 1;
+						// 	}else{
+						// 		validade_direcao=0;
+						// 	}
+						// }
+
+					} //end while
+					
+					// if (verifica_acertou_navio(x, y, matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro)==1) {
+					// 	printf("Computador acertou\n\n");
+					// 	acertou_ultima = true;
+					// 	// ultimo_x_chutado = x;
+					// 	// ultimo_y_chutado = y;
+					// }
+
+				}
+
+				printf("MATRIZ DO USUÁRIO\n");
+				imprime_matriz(matriz1, num_linhas_tabuleiro, num_colunas_tabuleiro);
+
+				if (jogo_acabou(matriz1, matriz2, num_linhas_tabuleiro, num_colunas_tabuleiro)) {
+					break;
+				} 
+
+				printf("------------FIM DA RODADA--------------\n");
+			} //end while
 
 		}
-
 
 	} else {
 		printf("Opção inválida.\n");

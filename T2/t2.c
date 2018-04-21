@@ -8,7 +8,7 @@ struct aluno {
 	char nome[100];
 	char curso[100];
 	struct aluno *proximo;
-	struct l_descr_avaliacao *lista_avaliacoes;
+	// struct l_descr_avaliacao *lista_avaliacoes;
 	struct l_descr_faltas *lista_faltas;
 };
 
@@ -52,25 +52,31 @@ struct cadeira{
 struct aula{
 	char data[25];
 	char conteudo[250];
-	long int cod_turma;
+	// long int cod_turma;
 	struct aula *proximo;
 	struct l_descr_falta *lista_faltas;
 };
 
 struct turma{
-	// long int cod;
+	long int cod;
 	long int cod_cadeira;
 	struct l_descr_no_aluno *lista_alunos;
 	struct l_descr_aula *lista_aulas;
 	struct l_descr_no_prof *lista_profs;
+	struct l_descr_no_avaliacao *lista_avaliacoes;
 	struct turma *proximo;
 };
 
 struct avaliacao{
 	float nota;
 	long int matricula_aluno;
-	long int cod_cadeira;
+	// long int cod_cadeira;
 	struct avaliacao *proximo;
+};
+
+struct no_avaliacao{
+	struct avaliacao *avaliacao;
+	struct no_avaliacao *proximo;
 };
 
 struct falta{
@@ -136,6 +142,12 @@ struct l_descr_avaliacao{
 	struct avaliacao *inicio;
 	int cont;
 	struct avaliacao *fim;
+};
+
+struct l_descr_no_avaliacao{
+	struct no_avaliacao *inicio;
+	int cont;
+	struct no_avaliacao *fim;
 };
 
 struct l_descr_falta{
@@ -248,6 +260,19 @@ bool matricula_ja_cadastrada(struct l_descr_aluno *lista, long int matricula) {
 	return false;
 }
 
+void exclui_inicio_lista_alunos(struct l_descr_aluno *lista, struct aluno *aux) {
+	lista->inicio = aux->proximo;
+	lista->cont--;
+	free(aux);
+}
+
+void exclui_fim_lista_alunos(struct l_descr_aluno *lista, struct aluno *aux, struct aluno *anterior) {
+	lista->fim = anterior;
+	anterior->proximo = NULL;
+	lista->cont--;
+	free(aux);
+}
+
 void exclui_lista_alunos(struct l_descr_aluno *lista, long int matricula) {
 	struct aluno *aux = lista->inicio;
 	struct aluno *anterior = NULL;
@@ -255,7 +280,11 @@ void exclui_lista_alunos(struct l_descr_aluno *lista, long int matricula) {
 	while(aux != NULL){
 		if (aux->matricula == matricula) {
 			if (anterior == NULL) {
-				lista->inicio = aux->proximo;
+				exclui_inicio_lista_alunos(lista, aux);
+			}else if(aux->proximo == NULL) {
+				exclui_fim_lista_alunos(lista, aux, anterior);
+			}else{
+				anterior->proximo = aux->proximo;
 				lista->cont--;
 				free(aux);
 			}
@@ -263,6 +292,18 @@ void exclui_lista_alunos(struct l_descr_aluno *lista, long int matricula) {
 		anterior = aux;
 		aux = aux->proximo;
 	}
+}
+
+struct aluno *busca_aluno_by_matricula(struct l_descr_aluno *lista, long int matricula) {
+	struct aluno *aux = lista->inicio;
+
+	while(aux != NULL){
+		if (aux->matricula == matricula) {
+			return aux;
+		}
+		aux = aux->proximo;
+	}
+	return NULL;
 }
 
 ///////////////////////FUNCOES PARA LISTA DE PROFESSORES///////////////////////
@@ -275,7 +316,7 @@ void inicializa_lista_profs(struct l_descr_prof *lista) {
 void imprime_lista_profs(struct l_descr_prof *lista) {
     struct prof *aux = lista->inicio;
     while(aux !=  NULL) {
-        printf("->%s\n", aux->nome);
+        printf("->Nome: %s | SIAPE: %ld\n", aux->nome, aux->siape);
         aux = aux->proximo;
     }
 }
@@ -318,6 +359,52 @@ bool prof_ja_cadastrado(struct l_descr_prof *lista, long int siape) {
 	return false;	
 }
 
+void exclui_inicio_lista_profs(struct l_descr_prof *lista, struct prof *aux) {
+	lista->inicio = aux->proximo;
+	lista->cont--;
+	free(aux);
+}
+
+void exclui_fim_lista_profs(struct l_descr_prof *lista, struct prof *aux, struct prof *anterior) {
+	lista->fim = anterior;
+	anterior->proximo = NULL;
+	lista->cont--;
+	free(aux);
+}
+
+void exclui_lista_profs(struct l_descr_prof *lista, long int siape) {
+	struct prof *aux = lista->inicio;
+	struct prof *anterior = NULL;
+
+	while(aux != NULL){
+		if (aux->siape == siape) {
+			if (anterior == NULL) {
+				exclui_inicio_lista_profs(lista, aux);
+			}else if(aux->proximo == NULL){
+				exclui_fim_lista_profs(lista, aux, anterior);
+			}else{
+				anterior->proximo = aux->proximo;
+				lista->cont--;
+				free(aux);
+			}
+		}
+		anterior = aux;
+		aux = aux->proximo;
+	}
+}
+
+struct prof *busca_prof_by_siape(struct l_descr_prof *lista, long int siape) {
+	struct prof *aux = lista->inicio;
+
+	while(aux != NULL){
+		if (aux->siape == siape) {
+			return aux;
+		}
+		aux = aux->proximo;
+	}
+	return NULL;
+}
+
 ///////////////////////FUNCOES PARA LISTA DE CADEIRAS///////////////////////
 void inicializa_lista_cadeiras(struct l_descr_cadeira *lista) {
     lista->fim = NULL;
@@ -328,7 +415,7 @@ void inicializa_lista_cadeiras(struct l_descr_cadeira *lista) {
 void imprime_lista_cadeiras(struct l_descr_cadeira *lista) {
     struct cadeira *aux = lista->inicio;
     while(aux !=  NULL) {
-        printf("->%s\n", aux->nome);
+        printf("->Nome: %s | Código: %ld\n", aux->nome, aux->cod);
         aux = aux->proximo;
     }	
 }
@@ -361,6 +448,17 @@ void insere_inicio_lista_cadeiras(struct l_descr_cadeira *lista, struct cadeira 
     }
 }
 
+char *nome_cadeira_por_cod(struct l_descr_cadeira *lista, long int cod) {
+	struct cadeira *aux = lista->inicio;
+
+	while(aux != NULL){
+		if (aux->cod == cod) {
+			return aux->nome;
+		}
+		aux = aux->proximo;
+	}
+} 
+
 bool cadeira_ja_cadastrada(struct l_descr_cadeira *lista, long int cod) {
 	struct cadeira *aux = lista->inicio;
 
@@ -383,7 +481,7 @@ void inicializa_lista_avaliacoes(struct l_descr_avaliacao *lista) {
 void imprime_lista_avaliacoes(struct l_descr_avaliacao *lista) {
     struct avaliacao *aux = lista->inicio;
     while(aux !=  NULL) {
-        printf("->Nota: %f. Matricula do aluno: %ld. Codigo da cadeira: %ld\n", aux->nota, aux->matricula_aluno, aux->cod_cadeira);
+        printf("->Nota: %f. Matricula do aluno: %ld\n", aux->nota, aux->matricula_aluno);
         aux = aux->proximo;
     }	
 }
@@ -391,7 +489,7 @@ void imprime_lista_avaliacoes(struct l_descr_avaliacao *lista) {
 void insere_vazia_lista_avaliacoes(struct l_descr_avaliacao *lista, struct avaliacao avaliacao) {
 	lista->inicio = malloc(sizeof(struct avaliacao));
 	lista->inicio->nota = avaliacao.nota;  
-	lista->inicio->cod_cadeira = avaliacao.cod_cadeira;
+	// lista->inicio->cod_cadeira = avaliacao.cod_cadeira;
 	lista->inicio->matricula_aluno = avaliacao.matricula_aluno;
     lista->inicio->proximo = NULL;
     lista->cont++;
@@ -404,7 +502,7 @@ void insere_inicio_lista_avaliacoes(struct l_descr_avaliacao *lista, struct aval
     }else{
         struct avaliacao *aux = malloc(sizeof(struct avaliacao));
         aux->nota = avaliacao.nota;  
-		aux->cod_cadeira = avaliacao.cod_cadeira;
+		// aux->cod_cadeira = avaliacao.cod_cadeira;
 		aux->matricula_aluno = avaliacao.matricula_aluno;
         aux->proximo = lista->inicio;
         lista->inicio = aux;
@@ -416,9 +514,9 @@ bool avaliacao_ja_cadastrada(struct l_descr_avaliacao *lista, long int cod_cadei
 	struct avaliacao *aux = lista->inicio;
 
 	while(aux != NULL){
-		if (aux->cod_cadeira == cod_cadeira && aux->matricula_aluno == matricula_aluno) {
-			return true;
-		}
+		// if (aux->cod_cadeira == cod_cadeira && aux->matricula_aluno == matricula_aluno) {
+		// 	return true;
+		// }
 		aux = aux->proximo;
 	}
 	return false;	
@@ -431,22 +529,25 @@ void inicializa_lista_turmas(struct l_descr_turma *lista) {
     lista->cont = 0;
 }
 
-void imprime_lista_turmas(struct l_descr_turma *lista) {
+void imprime_lista_turmas(struct l_descr_turma *lista, struct l_descr_cadeira *lista_cadeiras) {
     struct turma *aux = lista->inicio;
     while(aux !=  NULL) {
-        printf("->Turma de cadeira codigo %ld\n", aux->cod_cadeira);
+        printf("->Turma %ld | Cadeira: %s | Numero de alunos %d| Número de profs %d\n", aux->cod, nome_cadeira_por_cod(lista_cadeiras, aux->cod_cadeira),
+        aux->lista_alunos->cont, aux->lista_profs->cont);
         aux = aux->proximo;
     }	
 }
 
 void insere_vazia_lista_turmas(struct l_descr_turma *lista, struct turma turma) {
 	lista->inicio = malloc(sizeof(struct turma));
-	// lista->inicio->cod = turma.cod;  
+    lista->cont++;  
+	lista->inicio->cod = lista->cont;
 	lista->inicio->cod_cadeira = turma.cod_cadeira;
-	lista->inicio->lista_alunos = NULL;
-    lista->inicio->lista_aulas = NULL;
-    lista->inicio->lista_profs = NULL;
-    lista->cont++;
+	lista->inicio->lista_alunos = malloc(sizeof(struct l_descr_no_aluno));
+    lista->inicio->lista_aulas = malloc(sizeof(struct l_descr_aula));
+    lista->inicio->lista_profs = malloc(sizeof(struct l_descr_no_prof));
+    lista->inicio->lista_avaliacoes = turma.lista_avaliacoes;
+    lista->inicio->proximo = NULL;
     lista->fim = lista->inicio;
 }
 
@@ -455,14 +556,168 @@ void insere_inicio_lista_turmas(struct l_descr_turma *lista, struct turma turma)
     	insere_vazia_lista_turmas(lista, turma);
     }else{
         struct turma *aux = malloc(sizeof(struct turma));
-        // aux->cod = turma.cod;  
+        lista->cont++;
+        aux->cod = lista->cont;  
 		aux->cod_cadeira = turma.cod_cadeira;
-		aux->lista_alunos = turma.lista_alunos;
-		aux->lista_aulas = turma.lista_aulas;
-		aux->lista_profs = turma.lista_profs;
+		aux->lista_alunos = malloc(sizeof(struct l_descr_no_aluno));
+		aux->lista_aulas = malloc(sizeof(struct l_descr_aula));
+		aux->lista_profs = malloc(sizeof(struct l_descr_no_prof));
+		aux->lista_avaliacoes = turma.lista_avaliacoes;
         aux->proximo = lista->inicio;
         lista->inicio = aux;
+    }
+}
+
+struct turma *turma_cadastrada(struct l_descr_turma *lista, long int cod) {
+	struct turma *aux = lista->inicio;
+
+	while (aux != NULL) {
+		if (aux->cod == cod) {
+			return aux;
+		}
+		aux = aux->proximo;
+	}
+	return NULL;
+}
+
+///////////////////////FUNCOES PARA LISTA DE NO_ALUNOS///////////////////////
+void inicializa_lista_no_alunos(struct l_descr_no_aluno *lista) {
+    lista->fim = NULL;
+    lista->inicio = NULL;
+    lista->cont = 0;
+}
+
+void imprime_lista_no_alunos(struct l_descr_no_aluno *lista) {
+    struct no_aluno *aux = lista->inicio;
+    while(aux !=  NULL) {
+        printf("->Aluno %s | Matricula: %ld\n", aux->aluno->nome, aux->aluno->matricula);
+        aux = aux->proximo;
+    }	
+}
+
+void insere_vazia_lista_no_alunos(struct l_descr_no_aluno *lista, struct aluno *aluno) {
+	lista->inicio = malloc(sizeof(struct no_aluno));
+    lista->cont++;  
+	lista->inicio->aluno = aluno;
+	lista->inicio->proximo = NULL;
+    lista->fim = lista->inicio;
+}
+
+void insere_inicio_lista_no_alunos(struct l_descr_no_aluno *lista, struct aluno *aluno) {
+    if (lista->inicio == NULL) {
+    	insere_vazia_lista_no_alunos(lista, aluno);
+    }else{
+        struct no_aluno *aux = malloc(sizeof(struct no_aluno));
         lista->cont++;
+        aux->aluno = aluno;  
+        aux->proximo = lista->inicio;
+        lista->inicio = aux;
+    }
+}
+
+bool aluno_ja_matriculado_turma(struct l_descr_no_aluno *lista, struct aluno *aluno) {
+	struct no_aluno *aux = lista->inicio;
+
+	while (aux != NULL) {
+		if (aux->aluno == aluno) {
+			return true;
+		}
+		aux = aux->proximo;
+	}
+	return false;
+}
+
+///////////////////////FUNCOES PARA LISTA DE NO_PROFS///////////////////////
+void inicializa_lista_no_profs(struct l_descr_no_prof *lista) {
+    lista->fim = NULL;
+    lista->inicio = NULL;
+    lista->cont = 0;
+}
+
+void imprime_lista_no_profs(struct l_descr_no_prof *lista) {
+    struct no_prof *aux = lista->inicio;
+    while(aux !=  NULL) {
+        printf("->Professor %s | SIAPE: %ld\n", aux->prof->nome, aux->prof->siape);
+        aux = aux->proximo;
+    }	
+}
+
+void insere_vazia_lista_no_profs(struct l_descr_no_prof *lista, struct prof *prof) {
+	lista->inicio = malloc(sizeof(struct no_prof));
+    lista->cont++;  
+	lista->inicio->prof = prof;
+	lista->inicio->proximo = NULL;
+    lista->fim = lista->inicio;
+}
+
+void insere_inicio_lista_no_profs(struct l_descr_no_prof *lista, struct prof *prof) {
+    if (lista->inicio == NULL) {
+    	insere_vazia_lista_no_profs(lista, prof);
+    }else{
+        struct no_prof *aux = malloc(sizeof(struct no_prof));
+        lista->cont++;
+        aux->prof = prof;  
+        aux->proximo = lista->inicio;
+        lista->inicio = aux;
+    }
+}
+
+bool prof_ja_vinculado_turma(struct l_descr_no_prof *lista, struct prof *prof) {
+	struct no_prof *aux = lista->inicio;
+
+	while (aux != NULL) {
+		if (aux->prof == prof) {
+			return true;
+		}
+		aux = aux->proximo;
+	}
+	return false;
+}
+
+void vincula_prof_turma(struct turma *turma, long int siape, struct l_descr_prof *lista_profs) {
+	struct prof *prof = busca_prof_by_siape(lista_profs, siape);
+	insere_inicio_lista_no_profs(turma->lista_profs, prof);		
+	printf("PROFESSOR VINCULADO COM SUCESSO!\n");
+}
+
+///////////////////////FUNCOES PARA LISTA DE AULAS///////////////////////
+void inicializa_lista_aulas(struct l_descr_aula *lista) {
+    lista->fim = NULL;
+    lista->inicio = NULL;
+    lista->cont = 0;
+}
+
+void imprime_lista_aulas(struct l_descr_aula *lista) {
+    struct aula *aux = lista->inicio;
+    while(aux !=  NULL) {
+        printf("->Aula do dia %s\n", aux->data);
+        aux = aux->proximo;
+    }	
+}
+
+void insere_vazia_lista_aulas(struct l_descr_aula *lista, struct aula aula) {
+	lista->inicio = malloc(sizeof(struct aula));
+    lista->cont++;
+    strcpy(lista->inicio->data, aula.data); 
+    strcpy(lista->inicio->conteudo, aula.conteudo); 
+	// lista->inicio->cod_turma = aula.cod_turma;
+	lista->inicio->lista_faltas = malloc(sizeof(struct l_descr_falta));
+	lista->inicio->proximo = NULL;
+    lista->fim = lista->inicio;
+}
+
+void insere_inicio_lista_aulas(struct l_descr_aula *lista, struct aula aula) {
+    if (lista->inicio == NULL) {
+    	insere_vazia_lista_aulas(lista, aula);
+    }else{
+        struct aula *aux = malloc(sizeof(struct aula));
+        lista->cont++;
+        strcpy(aux->data, aula.data);
+        strcpy(aux->conteudo, aula.conteudo);
+		// aux->cod_turma = aula.cod_turma;
+		aux->lista_faltas = malloc(sizeof(struct l_descr_falta));  
+        aux->proximo = lista->inicio;
+        lista->inicio = aux;
     }
 }
 
@@ -471,16 +726,16 @@ void cadastro_curso(struct l_descr_curso *lista_cursos) {
 
 	char nome[100];
 
-	printf("CADASTRO DE CURSO\n");
+	printf("---------------CADASTRO DE CURSO---------------\n");
 	setbuf(stdin, NULL);
-	printf("Informe o nome:\n");
+	printf("Nome:\n");
 	fgets(nome, 100, stdin);
 
 	retira_espaco(nome);
 
 	while (curso_cadastrado(lista_cursos, nome)) {
 		setbuf(stdin, NULL);
-		printf("Curso ja cadastrado. Informe novamente:");
+		printf("Curso ja cadastrado. Informe novamente: \n");
 		fgets(nome, 100, stdin);
 		retira_espaco(nome);
 	}
@@ -501,14 +756,14 @@ void cadastro_aluno(struct l_descr_aluno *lista_alunos, struct l_descr_curso *li
 	long int matricula;
 	struct aluno novo_aluno;
 
-	printf("CADASTRO DE ALUNO\n");
+	printf("---------------CADASTRO DE ALUNO---------------\n");
 	setbuf(stdin, NULL);
 	printf("Nome:\n");
 	fgets (nome, 100, stdin);
 	printf("Matricula:\n");
 	scanf("%ld", &matricula);
 	while (matricula_ja_cadastrada(lista_alunos, matricula)) {
-		printf("Matricula ja cadastrada. Informe novamente:\n");
+		printf("Matricula ja cadastrada. Informe novamente: \n");
 		scanf("%ld", &matricula);
 	}
 	setbuf(stdin, NULL);
@@ -520,7 +775,7 @@ void cadastro_aluno(struct l_descr_aluno *lista_alunos, struct l_descr_curso *li
 
 	while (!curso_cadastrado(lista_cursos, curso)) {
 		setbuf(stdin, NULL);
-		printf("Curso nao cadastrado. Informe novamente:");
+		printf("Curso nao cadastrado. Informe novamente: \n");
 		fgets (curso, 100, stdin);
 		retira_espaco(curso);
 	}
@@ -541,21 +796,21 @@ void cadastro_prof(struct l_descr_prof *lista) {
 	char area_atuacao[100];
 	char titulacao[100];
 
-	printf("CADASTRO DE PROFESSOR\n");
+	printf("---------------CADASTRO DE PROFESSOR---------------\n");
 	setbuf(stdin, NULL);
-	printf("Informe o nome:\n");
+	printf("Nome:\n");
 	fgets(nome, 100, stdin);
-	printf("Informe o SIAPE:\n");
+	printf("SIAPE:\n");
 	scanf("%ld", &siape);
 	while (prof_ja_cadastrado(lista, siape)) {
-		printf("SIAPE ja cadastrado. Informe novamente:");
+		printf("SIAPE ja cadastrado. Informe novamente:\n");
 		scanf("%ld", &siape);
 	}
 	setbuf(stdin, NULL);
-	printf("Informe a área de atuação:\n");
+	printf("Área de atuação:\n");
 	fgets(area_atuacao, 100, stdin);
 	setbuf(stdin, NULL);
-	printf("Informe a titulação:\n");
+	printf("Titulação:\n");
 	fgets(titulacao, 100, stdin);
 
 	retira_espaco(nome);
@@ -584,7 +839,7 @@ void cadastro_cadeira(struct l_descr_cadeira *lista, struct l_descr_curso *lista
 	char pre_requisito[250];
 	int carga_horaria;
 
-	printf("CADASTRO DE DISCIPLINA:\n");
+	printf("---------------CADASTRO DE DISCIPLINA---------------\n");
 	printf("Codigo: \n");
 	scanf("%ld", &cod);
 	while(cadeira_ja_cadastrada(lista, cod)) {
@@ -637,7 +892,7 @@ void cadastro_avaliacao(struct l_descr_avaliacao *lista, struct l_descr_aluno *l
 	long int cod_cadeira, matricula_aluno;
 	float nota;
 
-	printf("CADASTRO DE AVALIAÇÃO:\n");
+	printf("---------------CADASTRO DE AVALIAÇÃO---------------\n");
 	printf("Codigo da cadeira: \n");
 	scanf("%ld", &cod_cadeira);
 	while(!cadeira_ja_cadastrada(lista_cadeiras, cod_cadeira)) {
@@ -651,43 +906,49 @@ void cadastro_avaliacao(struct l_descr_avaliacao *lista, struct l_descr_aluno *l
 		scanf("%ld", &matricula_aluno);
 	}
 
-	while(avaliacao_ja_cadastrada(lista, cod_cadeira, matricula_aluno)) {
-		printf("Avaliacao ja cadastrada para esses dados. Informe novamente os dados:\n");
-		printf("Codigo da cadeira: \n");
-		scanf("%ld", &cod_cadeira);
-		while(!cadeira_ja_cadastrada(lista_cadeiras, cod_cadeira)) {
-			printf("Cadeira não cadastrada. Informe novamente:\n");
-			scanf("%ld", &cod_cadeira);
-		}
-		printf("Matricula do aluno:\n");
-		scanf("%ld", &matricula_aluno);
-		while(!matricula_ja_cadastrada(lista_alunos, matricula_aluno)) {
-			printf("Matricula não cadastrada. Informe novamente:\n");
-			scanf("%ld", &matricula_aluno);
-		}
-	}
+	// while(avaliacao_ja_cadastrada(lista, cod_cadeira, matricula_aluno)) {
+	// 	printf("Avaliacao ja cadastrada para esses dados. Informe novamente os dados:\n");
+	// 	printf("Codigo da cadeira: \n");
+	// 	scanf("%ld", &cod_cadeira);
+	// 	while(!cadeira_ja_cadastrada(lista_cadeiras, cod_cadeira)) {
+	// 		printf("Cadeira não cadastrada. Informe novamente:\n");
+	// 		scanf("%ld", &cod_cadeira);
+	// 	}
+	// 	printf("Matricula do aluno:\n");
+	// 	scanf("%ld", &matricula_aluno);
+	// 	while(!matricula_ja_cadastrada(lista_alunos, matricula_aluno)) {
+	// 		printf("Matricula não cadastrada. Informe novamente:\n");
+	// 		scanf("%ld", &matricula_aluno);
+	// 	}
+	// }
 
 	printf("Informe a nota da avaliação:\n");
 	scanf("%f", &nota);
 
 	nova_avaliacao.nota = nota;
-	nova_avaliacao.cod_cadeira = cod_cadeira; 
+	// nova_avaliacao.cod_cadeira = cod_cadeira; 
 	nova_avaliacao.matricula_aluno = matricula_aluno; 
 
 	insere_inicio_lista_avaliacoes(lista, nova_avaliacao);
 	printf("AVALIAÇÃO CADASTRADA COM SUCESSO!\n");
 }
 
-void cadastro_turma(struct l_descr_turma *lista, struct l_descr_cadeira *lista_cadeiras, struct l_descr_curso *lista_cursos) {
+void cadastro_turma(struct l_descr_turma *lista, struct l_descr_cadeira *lista_cadeiras, struct l_descr_curso *lista_cursos, struct l_descr_prof *lista_profs) {
 	while(lista_cadeiras->inicio == NULL){
 		printf("Nenhuma disciplina cadastrada. Para prosseguir, preencha o cadastro de disciplina.\n");
 		cadastro_cadeira(lista_cadeiras, lista_cursos);
 	}
+	while(lista_profs->inicio == NULL){
+		printf("Nenhum professor cadastrado. Para prosseguir, preencha o cadastro de professores.\n");
+		cadastro_prof(lista_profs);
+	}
 
 	struct turma nova_turma;
-	long int cod_cadeira;
+	long int cod_cadeira, siape;
 
-	printf("CADASTRO DE TURMA:\n");
+	printf("---------------CADASTRO DE TURMA---------------\n");
+	printf("Cadeiras cadastradas\n");
+	imprime_lista_cadeiras(lista_cadeiras);
 	printf("Codigo da cadeira: \n");
 	scanf("%ld", &cod_cadeira);
 	while(!cadeira_ja_cadastrada(lista_cadeiras, cod_cadeira)) {
@@ -695,10 +956,27 @@ void cadastro_turma(struct l_descr_turma *lista, struct l_descr_cadeira *lista_c
 		scanf("%ld", &cod_cadeira);
 	}
 
+	nova_turma.lista_profs = malloc(sizeof(struct l_descr_no_prof));
+	inicializa_lista_no_profs(nova_turma.lista_profs);
+	printf("Professores cadastrados no sistema\n");
+	imprime_lista_profs(lista_profs);
+	printf("Informe o SIAPE do professor que você deseja vincular a turma ou digite 0 para sair: \n");
+	scanf("%ld", &siape);
+	while (siape != 0) {
+		while(!prof_ja_cadastrado(lista_profs, siape) || prof_ja_vinculado_turma(nova_turma.lista_profs,
+		busca_prof_by_siape(lista_profs, siape))) {
+			printf("SIAPE inválida. Informe novamente: \n");
+			scanf("%ld", &siape);
+		}
+		vincula_prof_turma(&nova_turma, siape, lista_profs);
+		printf("Professores ja vinculados:\n");
+		imprime_lista_no_profs(nova_turma.lista_profs);
+		printf("Informe o SIAPE do professor que você deseja vincular a turma ou digite 0 para sair: \n");
+		scanf("%ld", &siape);
+	}
+
+	nova_turma.cod = 0;
 	nova_turma.cod_cadeira = cod_cadeira;
-	nova_turma.lista_alunos = NULL;
-	nova_turma.lista_aulas = NULL;
-	nova_turma.lista_profs = NULL;
 
 	insere_inicio_lista_turmas(lista, nova_turma);
 	printf("TURMA CADASTRADA COM SUCESSO!\n");
@@ -706,21 +984,41 @@ void cadastro_turma(struct l_descr_turma *lista, struct l_descr_cadeira *lista_c
 
 ///////////////////////FUNCOES DE EXCLUSAO///////////////////////
 void exclui_aluno(struct l_descr_aluno *lista) {
-	long int matricula;
+	if (lista->inicio == NULL) {
+		printf("Nenhum aluno cadastrado. Impossível realizar exclusão.\n");
+	}else{
+		long int matricula;
 
-	printf("Alunos cadastrados\n");
-	imprime_lista_alunos(lista);
-	printf("Informe a matricula do aluno que você deseja excluir:\n");
-	scanf("%ld", &matricula);
-	while(!matricula_ja_cadastrada(lista, matricula)){
-		printf("Matrícula inválida. Informe novamente:\n");
+		printf("Alunos cadastrados\n");
+		imprime_lista_alunos(lista);
+		printf("Informe a matricula do aluno que você deseja excluir:\n");
 		scanf("%ld", &matricula);
+		while(!matricula_ja_cadastrada(lista, matricula)){
+			printf("Matrícula inválida. Informe novamente:\n");
+			scanf("%ld", &matricula);
+		}
+		exclui_lista_alunos(lista, matricula);
+		printf("ALUNO DE MATRICULA '%ld' REMOVIDO COM SUCESSO.\n", matricula);
 	}
-
 }
 
 void exclui_prof(struct l_descr_prof *lista) {
+	if (lista->inicio == NULL) {
+		printf("Nenhum professor cadastrado. Impossível realizar exclusão.\n");
+	}else{
+		long int siape;
 
+		printf("Professores cadastrados\n");
+		imprime_lista_profs(lista);
+		printf("Informe o SIAPE do professor que você deseja excluir:\n");
+		scanf("%ld", &siape);
+		while(!prof_ja_cadastrado(lista, siape)){
+			printf("SIAPE inválida. Informe novamente:\n");
+			scanf("%ld", &siape);
+		}
+		exclui_lista_profs(lista, siape);
+		printf("PROFESSOR DE SIAPE '%ld' REMOVIDO COM SUCESSO.\n", siape);
+	}
 }
 
 void exclui_curso(struct l_descr_curso *lista) {
@@ -739,18 +1037,110 @@ void exclui_avaliacao(struct l_descr_avaliacao *lista) {
 
 }
 
+///////////////////////FUNCOES DE MATRICULA///////////////////////
+void vincula_aluno_turma(struct turma *turma, long int matricula, struct l_descr_aluno *lista_alunos) {
+	struct aluno *aluno = busca_aluno_by_matricula(lista_alunos, matricula);
+	insere_inicio_lista_no_alunos(turma->lista_alunos, aluno);		
+	printf("ALUNO MATRICULADO COM SUCESSO!\n");
+}
+
+void matricula_aluno(struct l_descr_aluno *lista_alunos, struct l_descr_turma *lista_turmas, struct l_descr_cadeira *lista_cadeiras,
+struct l_descr_curso *lista_cursos, struct l_descr_prof *lista_profs) {
+	long int cod_turma, matricula;
+	struct turma *turma;
+	int cont=0;
+
+	if (lista_turmas->inicio == NULL) {
+		printf("Nenhuma turma cadastrada. Primeiro, preencha o cadastro de turma: \n");
+		cadastro_turma(lista_turmas, lista_cadeiras, lista_cursos, lista_profs);
+	}
+	if (lista_alunos->inicio == NULL){
+		printf("Nenhum aluno cadastrado. Primeiro, preencha o cadastro de aluno: \n");
+		cadastro_aluno(lista_alunos, lista_cursos);
+	}
+	printf("Informe o código da turma que você deseja realizar a matrícula: \n");
+	imprime_lista_turmas(lista_turmas, lista_cadeiras);
+	scanf("%ld", &cod_turma);
+	turma = turma_cadastrada(lista_turmas, cod_turma);
+	while (turma == NULL) {
+		printf("Turma inválida. Informe novamente o código: \n");
+		scanf("%ld", &cod_turma);
+		turma = turma_cadastrada(lista_turmas, cod_turma);
+	}
+	// turma->lista_alunos = malloc(sizeof(struct l_descr_no_aluno));
+	inicializa_lista_no_alunos(turma->lista_alunos);
+	printf("Alunos cadastrados no sistema\n");
+	imprime_lista_alunos(lista_alunos);
+	while(turma->lista_alunos->cont < 50) {
+		printf("Informe a matrícula do aluno que você deseja matricular na turma ou digite 0 para sair: \n");
+		scanf("%ld", &matricula);
+		if (matricula != 0) {
+			while(!matricula_ja_cadastrada(lista_alunos, matricula) || aluno_ja_matriculado_turma(turma->lista_alunos,
+			busca_aluno_by_matricula(lista_alunos, matricula))) {
+				printf("Matrícula inválida. Informe novamente: \n");
+				scanf("%ld", &matricula);
+			}
+			vincula_aluno_turma(turma, matricula, lista_alunos);
+			printf("Alunos ja matriculados:\n");
+			imprime_lista_no_alunos(turma->lista_alunos);
+		}else{
+			break;
+		}
+	}
+} 
+
+///////////////////////OUTRAS FUNÇÕES///////////////////////
+void lancar_aulas(struct l_descr_turma *lista_turmas, struct l_descr_cadeira *lista_cadeiras, struct l_descr_curso *lista_cursos,
+struct l_descr_prof *lista_profs) {
+	if (lista_turmas->inicio == NULL) {
+		printf("Nenhuma turma cadastrada. Primeiro, preencha o cadastro de turma: \n");
+		cadastro_turma(lista_turmas, lista_cadeiras, lista_cursos, lista_profs);
+	}
+	struct aula nova_aula;
+	struct turma *turma;
+	char data[25], conteudo[255];
+	long int cod_turma;
+
+	printf("Informe o código da turma que você deseja lançar aula: \n");
+	imprime_lista_turmas(lista_turmas, lista_cadeiras);
+	scanf("%ld", &cod_turma);
+	turma = turma_cadastrada(lista_turmas, cod_turma);
+	while (turma == NULL) {
+		printf("Turma inválida. Informe novamente o código: \n");
+		scanf("%ld", &cod_turma);
+		turma = turma_cadastrada(lista_turmas, cod_turma);
+	}
+	setbuf(stdin, NULL);
+	printf("Data da aula (dd/mm/aaaa):\n");
+	fgets(data, 25, stdin);
+	setbuf(stdin, NULL);
+	printf("Conteúdo ministrado: \n");
+	fgets(conteudo, 255, stdin);
+
+	retira_espaco(data);
+	retira_espaco(conteudo);
+
+	strcpy(nova_aula.data, data);
+	strcpy(nova_aula.conteudo, conteudo);
+
+	insere_inicio_lista_aulas(turma->lista_aulas, nova_aula);
+	printf("AULA LANÇADA COM SUCESSO\n");
+	printf("lista de aulas\n");
+	imprime_lista_aulas(turma->lista_aulas);
+}
+
 void menu_crud(int *opcao, int tipo) {
 	if (tipo == 1) {
-		printf("Que tipo de cadastro você deseja fazer?\n1 - Alunos\n2 - Professores\n3 - Disciplinas\n4 - Avaliações\n5 - Turmas\n6 - Cursos\n");
+		printf("Que tipo de cadastro você deseja fazer?\n1 - Alunos\n2 - Professores\n3 - Disciplinas\n4 - Avaliações\n5 - Turmas\n6 - Cursos\n7 - Sair\n");
 	}else if (tipo == 2) {
-		printf("Que tipo de exclusão você deseja fazer?\n1 - Alunos\n2 - Professores\n3 - Disciplinas\n4 - Avaliações\n5 - Turmas\n6 - Cursos\n");
+		printf("Que tipo de exclusão você deseja fazer?\n1 - Alunos\n2 - Professores\n3 - Disciplinas\n4 - Avaliações\n5 - Turmas\n6 - Cursos\n7 - Sair\n");
 	}else{
-		printf("Que tipo de busca você deseja fazer?\n1 - Alunos\n2 - Professores\n3 - Disciplinas\n4 - Avaliações\n5 - Turmas\n6 - Cursos\n");
+		printf("Que tipo de busca você deseja fazer?\n1 - Alunos\n2 - Professores\n3 - Disciplinas\n4 - Avaliações\n5 - Turmas\n6 - Cursos\n7 - Sair\n");
 	}
 
 	scanf("%d", opcao);
 
-	while(*opcao < 1 || *opcao > 6) {
+	while(*opcao < 1 || *opcao > 8) {
 		printf("Opção inválida. Informe novamente.\n");
 		scanf("%d", opcao);
 	}
@@ -778,17 +1168,23 @@ void menu_inicial(int *opcao, struct l_descr_aluno *lista_alunos, struct l_descr
 		}else if (*opcao == 4){
 			cadastro_avaliacao(lista_avalicoes, lista_alunos, lista_cadeiras, lista_cursos);
 		}else if (*opcao == 5){
-			cadastro_turma(lista_turmas, lista_cadeiras, lista_cursos);
+			cadastro_turma(lista_turmas, lista_cadeiras, lista_cursos, lista_profs);
 		}else if (*opcao == 6){
 			cadastro_curso(lista_cursos);
+		}else if (*opcao == 7){
+			printf("Saindo...\n");			
 		}
 
 	}else if (*opcao == 2){
 		//matriculas
+		matricula_aluno(lista_alunos, lista_turmas, lista_cadeiras, lista_cursos, lista_profs);
 	}else if (*opcao == 3){
 		//notas
 	}else if (*opcao == 4){
 		//aulas
+
+		lancar_aulas(lista_turmas, lista_cadeiras, lista_cursos, lista_profs);
+
 	}else if (*opcao == 5){
 		//faltas
 	}else if (*opcao == 6){
@@ -798,17 +1194,19 @@ void menu_inicial(int *opcao, struct l_descr_aluno *lista_alunos, struct l_descr
 
 		menu_crud(opcao, 2);
 		if (*opcao == 1) {
-			
+			exclui_aluno(lista_alunos);
 		}else if (*opcao == 2){
-			cadastro_prof(lista_profs);
+			exclui_prof(lista_profs);
 		}else if (*opcao == 3){	
-			cadastro_cadeira(lista_cadeiras, lista_cursos);
+			// exclui_cadeira(lista_cadeiras, lista_cursos);
 		}else if (*opcao == 4){
-			cadastro_avaliacao(lista_avalicoes, lista_alunos, lista_cadeiras, lista_cursos);
+			// exclui_avaliacao(lista_avalicoes, lista_alunos, lista_cadeiras, lista_cursos);
 		}else if (*opcao == 5){
-			cadastro_turma(lista_turmas, lista_cadeiras, lista_cursos);
+			// exclui_turma(lista_turmas, lista_cadeiras, lista_cursos);
 		}else if (*opcao == 6){
-			cadastro_curso(lista_cursos);
+			// exclui_curso(lista_cursos);
+		}else if (*opcao == 7){
+			printf("Saindo...\n");			
 		}
 
 	}else if (*opcao == 8){
@@ -826,13 +1224,15 @@ void menu_inicial(int *opcao, struct l_descr_aluno *lista_alunos, struct l_descr
 			//turma
 		}else if (*opcao == 6){
 			//curso
+		}else if (*opcao == 7){
+			printf("Saindo...\n");			
 		}
 	}
 }
 
 int main(){
 
-	int opcao;
+	int opcao = 1;
 	struct l_descr_aluno alunos_cadastrados;
 	// struct l_descr_no_aluno alunos_cadastrados;
 	struct l_descr_curso cursos_cadastrados;
@@ -850,15 +1250,15 @@ int main(){
 	inicializa_lista_turmas(&turmas_cadastradas);
 	inicializa_lista_avaliacoes(&avaliacoes_cadastradas);
 
-	menu_inicial(&opcao, &alunos_cadastrados, &cursos_cadastrados, &profs_cadastrados, &cadeiras_cadastradas, &turmas_cadastradas, &avaliacoes_cadastradas);
+	// menu_inicial(&opcao, &alunos_cadastrados, &cursos_cadastrados, &profs_cadastrados, &cadeiras_cadastradas, &turmas_cadastradas, &avaliacoes_cadastradas);
 
-	printf("Deseja realizar outra operação? 1-SIM e 2-NÃO\n");
-	scanf("%d", &opcao);
+	// printf("Deseja realizar outra operação? 1-SIM e 2-NÃO\n");
+	// scanf("%d", &opcao);
 
-	while(opcao != 1 && opcao != 2) {
-		printf("Opção inválida. Informe novamente.\n");
-		scanf("%d", &opcao);
-	}
+	// while(opcao != 1 && opcao != 2) {
+	// 	printf("Opção inválida. Informe novamente.\n");
+	// 	scanf("%d", &opcao);
+	// }
 
 	while (opcao == 1) {
 		menu_inicial(&opcao, &alunos_cadastrados, &cursos_cadastrados, &profs_cadastrados, &cadeiras_cadastradas, &turmas_cadastradas, &avaliacoes_cadastradas);
@@ -881,7 +1281,7 @@ int main(){
 	printf("AVALIAÇÕES\n");
 	imprime_lista_avaliacoes(&avaliacoes_cadastradas);
 	printf("TURMAS\n");
-	imprime_lista_turmas(&turmas_cadastradas);
+	imprime_lista_turmas(&turmas_cadastradas, &cadeiras_cadastradas);
 
 	return 0;
 }

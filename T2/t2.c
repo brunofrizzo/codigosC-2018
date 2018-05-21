@@ -34,11 +34,6 @@ struct curso{
 	struct curso *proximo;
 };
 
-struct no_curso{
-	struct curso *curso;
-	struct no_curso *proximo;
-};
-
 struct cadeira{
 	long int cod;
 	char curso[100];
@@ -107,12 +102,6 @@ struct l_descr_curso{
 	struct curso *inicio;
 	int cont;
 	struct curso *fim;
-};
-
-struct l_descr_no_curso{
-	struct no_curso *inicio;
-	int cont;
-	struct no_curso *fim;
 };
 
 struct l_descr_cadeira{
@@ -216,6 +205,7 @@ void exclui_lista_cursos(struct l_descr_curso *lista, char nome[100]) {
 				lista->cont--;
 				free(aux);
 			}
+			break;
 		}
 		anterior = aux;
 		aux = aux->proximo;
@@ -271,19 +261,19 @@ void insere_inicio_lista_faltas(struct l_descr_falta *lista, struct falta falta)
     }
 }
 
-void exclui_inicio_falta_aluno(struct l_descr_falta *lista) {
+void exclui_inicio_lista_faltas(struct l_descr_falta *lista) {
 	struct falta *aux = lista->inicio;
 	lista->inicio = aux->proximo;
 	lista->cont--;
 	free(aux);
 }
 
-void exclui_fim_falta_aluno(struct l_descr_falta *lista, struct falta *anterior) {
-	struct falta *aux = lista->fim;
+void exclui_fim_lista_faltas(struct l_descr_falta *lista, struct falta *anterior) {
+	// struct falta *aux = lista->fim;
+	free(lista->fim);
 	anterior->proximo = NULL;
 	lista->fim = anterior;
 	lista->cont--;
-	free(aux);
 }
 
 void exclui_falta_aluno(struct l_descr_falta *lista, long int mat) {
@@ -293,14 +283,15 @@ void exclui_falta_aluno(struct l_descr_falta *lista, long int mat) {
 	while (aux != NULL) {
 		if (aux->aluno->matricula == mat) {
 			if (anterior == NULL) {
-				exclui_inicio_falta_aluno(lista);
+				exclui_inicio_lista_faltas(lista);
 			}else if (aux->proximo == NULL) {
-				exclui_fim_falta_aluno(lista, anterior);
+				exclui_fim_lista_faltas(lista, anterior);
 			} else {
 				anterior->proximo = aux->proximo;
 				lista->cont--;
 				free(aux);
 			}
+			break;
 		}
 		anterior = aux;
 		aux = aux->proximo;
@@ -390,6 +381,7 @@ void exclui_lista_alunos(struct l_descr_aluno *lista, long int matricula) {
 				lista->cont--;
 				free(aux);
 			}
+			break;
 		}
 		anterior = aux;
 		aux = aux->proximo;
@@ -441,6 +433,12 @@ void insere_inicio_lista_no_alunos(struct l_descr_no_aluno *lista, struct aluno 
         aux->proximo = lista->inicio;
         lista->inicio = aux;
     }
+}
+
+void exclui_inicio_lista_no_alunos(struct l_descr_no_aluno *lista, struct no_aluno *aux) {
+	lista->inicio = aux->proximo;
+	lista->cont--;
+	free(aux);
 }
 
 bool aluno_ja_matriculado_turma(struct l_descr_no_aluno *lista, struct aluno *aluno) {
@@ -536,6 +534,7 @@ void exclui_lista_profs(struct l_descr_prof *lista, long int siape) {
 				lista->cont--;
 				free(aux);
 			}
+			break;
 		}
 		anterior = aux;
 		aux = aux->proximo;
@@ -625,6 +624,7 @@ void exclui_lista_cadeiras(struct l_descr_cadeira *lista, long int cod) {
 				lista->cont--;
 				free(aux);
 			}
+			break;
 		}
 		anterior = aux;
 		aux = aux->proximo;
@@ -733,6 +733,7 @@ void exclui_lista_avaliacoes(struct l_descr_avaliacao *lista, long int mat) {
 				lista->cont--;
 				free(aux);
 			}
+			break;
 		}
 		anterior = aux;
 		aux = aux->proximo;
@@ -805,6 +806,12 @@ void insere_inicio_lista_aulas(struct l_descr_aula *lista, struct aula aula) {
         lista->inicio = aux;
         lista->cont++;
     }
+}
+
+void exclui_inicio_lista_aulas(struct l_descr_aula *lista, struct aula *aux) {
+	lista->inicio = aux->proximo;
+	lista->cont--;
+	free(aux);
 }
 
 struct aula *busca_aula_by_id(struct l_descr_aula *lista, long int num) {
@@ -936,6 +943,7 @@ void exclui_lista_turmas(struct l_descr_turma *lista, long int cod) {
 				lista->cont--;
 				free(aux);
 			}
+			break;
 		}
 		anterior = aux;
 		aux = aux->proximo;
@@ -1045,6 +1053,7 @@ void exclui_aluno_turma(struct turma *turma, long int matricula) {
 				turma->lista_alunos->cont--;
 				free(aux2);
 			}
+			break;
 		}
 		aluno_anterior = aux2;
 		aux2 = aux2->proximo;
@@ -1082,6 +1091,7 @@ void exclui_prof_turma(struct l_descr_turma *lista_turmas, long int cod_turma, l
 						aux->lista_profs->cont--;
 						free(aux2);
 					}
+					break;
 				}
 				prof_anterior = aux2;
 				aux2 = aux2->proximo;
@@ -1124,6 +1134,12 @@ void insere_inicio_lista_no_profs(struct l_descr_no_prof *lista, struct prof *pr
         aux->proximo = lista->inicio;
         lista->inicio = aux;
     }
+}
+
+void exclui_inicio_lista_no_profs(struct l_descr_no_prof *lista, struct no_prof *aux) {
+	lista->inicio = aux->proximo;
+	lista->cont--;
+	free(aux);
 }
 
 bool prof_ja_vinculado_turma(struct l_descr_no_prof *lista, struct prof *prof) {
@@ -1169,7 +1185,7 @@ void cadastro_curso(struct l_descr_curso *lista_cursos) {
 
 void cadastro_aluno(struct l_descr_aluno *lista_alunos, struct l_descr_curso *lista_cursos) {
 	while(lista_cursos->inicio == NULL) {
-		printf("Nenhum curso cadastrado. Para prosseguir, preencha o cadastro de curso.\n");
+		printf("Nenhum curso cadastrado. Para prosseguir com o cadastro de aluno, preencha o cadastro de curso.\n");
 		cadastro_curso(lista_cursos);
 	}
 
@@ -1249,7 +1265,7 @@ void cadastro_prof(struct l_descr_prof *lista) {
 
 void cadastro_cadeira(struct l_descr_cadeira *lista, struct l_descr_curso *lista_cursos) {
 	while(lista_cursos->inicio == NULL) {
-		printf("Nenhum curso cadastrado. Para prosseguir, preencha o cadastro de curso.\n");
+		printf("Nenhum curso cadastrado. Para prosseguir com a cadastro de disciplina, preencha o cadastro de curso.\n");
 		cadastro_curso(lista_cursos);
 	}
 
@@ -1301,11 +1317,11 @@ void cadastro_cadeira(struct l_descr_cadeira *lista, struct l_descr_curso *lista
 
 void cadastro_turma(struct l_descr_turma *lista, struct l_descr_cadeira *lista_cadeiras, struct l_descr_curso *lista_cursos, struct l_descr_prof *lista_profs) {
 	while(lista_cadeiras->inicio == NULL){
-		printf("Nenhuma disciplina cadastrada. Para prosseguir, preencha o cadastro de disciplina.\n");
+		printf("Nenhuma disciplina cadastrada. Para prosseguir com o cadastro de turma, preencha o cadastro de disciplina.\n");
 		cadastro_cadeira(lista_cadeiras, lista_cursos);
 	}
 	while(lista_profs->inicio == NULL){
-		printf("Nenhum professor cadastrado. Para prosseguir, preencha o cadastro de professores.\n");
+		printf("Nenhum professor cadastrado. Para prosseguir com o cadastro de turma, preencha o cadastro de professores.\n");
 		cadastro_prof(lista_profs);
 	}
 
@@ -1361,7 +1377,7 @@ void cadastro_turma(struct l_descr_turma *lista, struct l_descr_cadeira *lista_c
 void cadastro_avaliacao(struct l_descr_aluno *lista_alunos, struct l_descr_turma *lista_turmas, struct l_descr_cadeira *lista_cadeiras, 
 struct l_descr_curso *lista_cursos, struct l_descr_prof *lista_profs) {
 	while(lista_turmas->inicio == NULL) {
-		printf("Nenhuma turma cadastrada. Para prosseguir, preencha o cadastro de turma.\n");
+		printf("Nenhuma turma cadastrada. Para prosseguir com o cadastro de avalição, preencha o cadastro de turma.\n");
 		cadastro_turma(lista_turmas, lista_cadeiras, lista_cursos, lista_profs);
 	}
 
@@ -1384,45 +1400,79 @@ struct l_descr_curso *lista_cursos, struct l_descr_prof *lista_profs) {
 	if (turma->lista_alunos->cont == 0) {
 		printf("Nenhum aluno matriculado nessa turma. Primeiro, realize a matrícula de algum aluno.\n");
 	} else{
-		printf("Matrícula do aluno que você deseja cadastrar a avaliação: \n");
 		printf("Alunos matriculados na turma\n");
 		imprime_lista_no_alunos(turma->lista_alunos);
+		printf("Matrícula do aluno que você deseja cadastrar a avaliação: \n");
 		scanf("%ld", &matricula);
 		aluno = busca_aluno_by_matricula(lista_alunos, matricula);
 		while (aluno == NULL) {
-			printf("Matricula inválida. Informe novamente: \n");
+			printf("Matricula não cadastrada no sistema. Informe novamente ou informe 0 para sair: \n");
 			scanf("%ld", &matricula);
-			aluno = busca_aluno_by_matricula(lista_alunos, matricula);
+			if (matricula != 0) { 
+				aluno = busca_aluno_by_matricula(lista_alunos, matricula);
+			}else {
+				break;
+			}
 		}
-		while (!aluno_ja_matriculado_turma(turma->lista_alunos, aluno)) {
-			printf("Matricula inválida. Informe novamente: \n");
-			scanf("%ld", &matricula);
-			aluno = busca_aluno_by_matricula(lista_alunos, matricula);
-		}
-		while (avaliacao_ja_cadastrada(turma->lista_avaliacoes, aluno->matricula)) {
-			printf("Avaliação ja cadastrada para esse aluno. Informe outra matrícula: \n");
-			scanf("%ld", &matricula);
-			aluno = busca_aluno_by_matricula(lista_alunos, matricula);
-		}
-		printf("Nota 1:\n");
-		scanf("%f", &n1);
-		while(n1 < 0 && n1 > 10) {
-			printf("Nota inválida. Informe novamente: \n");
-			scanf("%f", &n2);
-		}
-		printf("Nota 2:\n");
-		scanf("%f", &n2);
-		while(n2 < 0 && n2 > 10) {
-			printf("Nota inválida. Informe novamente: \n");
-			scanf("%f", &n2);
-		}
+		if (matricula != 0) {
+			while (!aluno_ja_matriculado_turma(turma->lista_alunos, aluno)) {
+				printf("Matricula inválida. Informe novamente ou informe 0 para sair: \n");
+				scanf("%ld", &matricula);
+				if (matricula != 0) {
+					aluno = busca_aluno_by_matricula(lista_alunos, matricula);
+				}else{
+					break;
+				}
+			}
+			if (matricula != 0) {
+				while (avaliacao_ja_cadastrada(turma->lista_avaliacoes, aluno->matricula) && matricula != 0) {
+					printf("Avaliação ja cadastrada para esse aluno. Informe outra matrícula ou informe 0 para sair:\n");
+					scanf("%ld", &matricula);
+					if (matricula != 0) {
+						aluno = busca_aluno_by_matricula(lista_alunos, matricula);
+						while (aluno == NULL) {
+							printf("Matricula não cadastrada no sistema. Informe novamente ou informe 0 para sair: \n");
+							scanf("%ld", &matricula);
+							if (matricula != 0) {
+								aluno = busca_aluno_by_matricula(lista_alunos, matricula);
+								while (!aluno_ja_matriculado_turma(turma->lista_alunos, aluno) && matricula != 0) {
+									printf("Matricula inválida. Informe novamente ou informe 0 para sair: \n");
+									scanf("%ld", &matricula);
+									if (matricula != 0)
+										aluno = busca_aluno_by_matricula(lista_alunos, matricula);
+								}
+							}else{
+								break;
+							}
+													}
+					}else{
+						break;
+					}
+				}
 
-		nova_avaliacao.nota1 = n1;
-		nova_avaliacao.nota2 = n2;
-		nova_avaliacao.aluno = aluno;   
+				if (matricula != 0) {
+					printf("Nota 1:\n");
+					scanf("%f", &n1);
+					while(n1 < 0 && n1 > 10) {
+						printf("Nota inválida. Informe novamente: \n");
+						scanf("%f", &n2);
+					}
+					printf("Nota 2:\n");
+					scanf("%f", &n2);
+					while(n2 < 0 && n2 > 10) {
+						printf("Nota inválida. Informe novamente: \n");
+						scanf("%f", &n2);
+					}
 
-		insere_inicio_lista_avaliacoes(turma->lista_avaliacoes, nova_avaliacao);
-		printf("AVALIAÇÃO CADASTRADA COM SUCESSO!\n");
+					nova_avaliacao.nota1 = n1;
+					nova_avaliacao.nota2 = n2;
+					nova_avaliacao.aluno = aluno;   
+
+					insere_inicio_lista_avaliacoes(turma->lista_avaliacoes, nova_avaliacao);
+					printf("AVALIAÇÃO CADASTRADA COM SUCESSO!\n");
+				}
+			}
+		}
 	}
 }
 
@@ -1454,6 +1504,7 @@ void exclui_aluno(struct l_descr_aluno *lista, struct l_descr_turma *lista_turma
 			while (aux != NULL) {
 				struct falta *aux2 = aux->lista_faltas->inicio;
 				while (aux2 != NULL) {
+					//verifica matricula do aluno no if e dentro da funcao
 					if (aux2->aluno->matricula == matricula) {
 						exclui_falta_aluno(aux->lista_faltas, matricula);
 					}
@@ -1746,43 +1797,41 @@ struct l_descr_curso *lista_cursos, struct l_descr_prof *lista_profs) {
 	int cont=0;
 
 	if (lista_turmas->inicio == NULL) {
-		printf("Nenhuma turma cadastrada. Primeiro, preencha o cadastro de turma: \n");
-		cadastro_turma(lista_turmas, lista_cadeiras, lista_cursos, lista_profs);
-	}
-	if (lista_alunos->inicio == NULL){
-		printf("Nenhum aluno cadastrado. Primeiro, preencha o cadastro de aluno: \n");
-		cadastro_aluno(lista_alunos, lista_cursos);
-	}
-	printf("Informe o código da turma que você deseja realizar a matrícula: \n");
-	imprime_lista_turmas(lista_turmas, lista_cadeiras);
-	scanf("%ld", &cod_turma);
-	turma = turma_cadastrada(lista_turmas, cod_turma);
-	while (turma == NULL) {
-		printf("Turma inválida. Informe novamente o código: \n");
+		printf("Nenhuma turma cadastrada. Primeiro, realize o cadastro de uma turma.\n");
+	}else if (lista_alunos->inicio == NULL){
+		printf("Nenhum aluno cadastrado. Primeiro, realize o cadastro de um aluno.\n");
+	} else{
+		printf("Informe o código da turma que você deseja realizar a matrícula: \n");
+		imprime_lista_turmas(lista_turmas, lista_cadeiras);
 		scanf("%ld", &cod_turma);
 		turma = turma_cadastrada(lista_turmas, cod_turma);
-	}
-	printf("Alunos cadastrados no sistema\n");
-	imprime_lista_alunos(lista_alunos);
-	while(turma->lista_alunos->cont < 50) {
-		if (turma->lista_alunos->cont != lista_alunos->cont) {
-			printf("Informe a matrícula do aluno que você deseja matricular na turma ou digite 0 para sair: \n");
-			scanf("%ld", &matricula);
-			if (matricula != 0) {
-				while(!matricula_ja_cadastrada(lista_alunos, matricula) || aluno_ja_matriculado_turma(turma->lista_alunos,
-				busca_aluno_by_matricula(lista_alunos, matricula))) {
-					printf("Matrícula inválida. Informe novamente: \n");
-					scanf("%ld", &matricula);
+		while (turma == NULL) {
+			printf("Turma inválida. Informe novamente o código: \n");
+			scanf("%ld", &cod_turma);
+			turma = turma_cadastrada(lista_turmas, cod_turma);
+		}
+		printf("Alunos cadastrados no sistema\n");
+		imprime_lista_alunos(lista_alunos);
+		while(turma->lista_alunos->cont < 50) {
+			if (turma->lista_alunos->cont != lista_alunos->cont) {
+				printf("Informe a matrícula do aluno que você deseja matricular na turma ou digite 0 para sair: \n");
+				scanf("%ld", &matricula);
+				if (matricula != 0) {
+					while(!matricula_ja_cadastrada(lista_alunos, matricula) || aluno_ja_matriculado_turma(turma->lista_alunos,
+					busca_aluno_by_matricula(lista_alunos, matricula))) {
+						printf("Matrícula inválida. Informe novamente: \n");
+						scanf("%ld", &matricula);
+					}
+					vincula_aluno_turma(turma, matricula, lista_alunos);
+					printf("Alunos ja matriculados:\n");
+					imprime_lista_no_alunos(turma->lista_alunos);
+				}else{
+					break;
 				}
-				vincula_aluno_turma(turma, matricula, lista_alunos);
-				printf("Alunos ja matriculados:\n");
-				imprime_lista_no_alunos(turma->lista_alunos);
 			}else{
+				printf("Desculpe, não há mais alunos disponíveis para realizar matrícula.\n");
 				break;
 			}
-		}else{
-			printf("Desculpe, não há mais alunos cadastrados no sistema para realizar matrícula.\n");
-			break;
 		}
 	}
 } 
@@ -2048,6 +2097,76 @@ void menu_inicial(int *opcao, struct l_descr_aluno *lista_alunos, struct l_descr
 	}
 }
 
+void libera_lista_alunos(struct l_descr_aluno *lista) {
+	int cont = lista->cont, i;
+	for (i=0;i<cont;i++){
+		exclui_inicio_lista_alunos(lista, lista->inicio);
+	}
+}
+
+void libera_lista_cursos(struct l_descr_curso *lista) {
+	int cont = lista->cont, i;
+	for (i=0;i<cont;i++){
+		exclui_inicio_lista_cursos(lista, lista->inicio);
+	}
+}
+
+void libera_lista_cadeiras(struct l_descr_cadeira *lista) {
+	int cont = lista->cont, i;
+	for (i=0;i<cont;i++){
+		exclui_inicio_lista_cadeiras(lista, lista->inicio);
+	}
+}
+
+void libera_lista_turmas(struct l_descr_turma *lista) {
+	int cont = lista->cont, i;
+	for (i=0;i<cont;i++){
+		exclui_inicio_lista_turmas(lista, lista->inicio);
+	}
+}
+
+void libera_lista_profs(struct l_descr_prof *lista) {
+	int cont = lista->cont, i;
+	for (i=0;i<cont;i++){
+		exclui_inicio_lista_profs(lista, lista->inicio);
+	}
+}
+
+void libera_lista_aulas(struct l_descr_aula *lista) {
+	int cont = lista->cont, i;
+	for (i=0;i<cont;i++){
+		exclui_inicio_lista_aulas(lista, lista->inicio);
+	}
+}
+
+void libera_lista_faltas(struct l_descr_falta *lista) {
+	int cont = lista->cont, i;
+	for (i=0;i<cont;i++){
+		exclui_inicio_lista_faltas(lista);
+	}
+}
+
+void libera_lista_no_alunos(struct l_descr_no_aluno *lista) {
+	int cont = lista->cont, i;
+	for (i=0;i<cont;i++){
+		exclui_inicio_lista_no_alunos(lista, lista->inicio);
+	}
+}
+
+void libera_lista_no_profs(struct l_descr_no_prof *lista) {
+	int cont = lista->cont, i;
+	for (i=0;i<cont;i++){
+		exclui_inicio_lista_no_profs(lista, lista->inicio);
+	}
+}
+
+void libera_lista_avaliacoes(struct l_descr_avaliacao *lista) {
+	int cont = lista->cont, i;
+	for (i=0;i<cont;i++){
+		exclui_inicio_lista_avaliacoes(lista, lista->inicio);
+	}
+}
+
 int main(){
 
 	int opcao = 1;
@@ -2073,25 +2192,24 @@ int main(){
 		}
 	}
 
-	// printf("ALUNOS:\n");
-	// imprime_lista_alunos(&alunos_cadastrados);
-	// printf("PROFESSORES: \n");
-	// imprime_lista_profs(&profs_cadastrados);
-	// printf("CURSOS:\n");
-	// imprime_lista_cursos(&cursos_cadastrados);
-	// printf("DISCIPLINAS:\n");
-	// imprime_lista_cadeiras(&cadeiras_cadastradas);
-	// printf("AVALIAÇÕES:\n");
-	// struct turma *aux = turmas_cadastradas.inicio;
-	// int cont = 1;
-	// while(aux != NULL) {
-	// 	printf("\tTURMA %d\n", cont);
-	// 	cont++;
-	// 	imprime_lista_avaliacoes(aux->lista_avaliacoes);
-	// 	aux = aux->proximo;
-	// }
-	// printf("TURMAS:\n");
-	// imprime_lista_turmas(&turmas_cadastradas, &cadeiras_cadastradas);
+	struct turma *aux_turma = turmas_cadastradas.inicio;
+	while (aux_turma != NULL) {
+		struct aula *aux_aula = aux_turma->lista_aulas->inicio;
+		while (aux_aula != NULL) {
+			libera_lista_faltas(aux_aula->lista_faltas);
+			aux_aula = aux_aula->proximo;
+		}
+		libera_lista_aulas(aux_turma->lista_aulas);
+		libera_lista_avaliacoes(aux_turma->lista_avaliacoes);
+		libera_lista_no_profs(aux_turma->lista_profs);
+		libera_lista_no_alunos(aux_turma->lista_alunos);
+		aux_turma = aux_turma->proximo;
+	}
+	libera_lista_alunos(&alunos_cadastrados);
+	libera_lista_cursos(&cursos_cadastrados);
+	libera_lista_profs(&profs_cadastrados);
+	libera_lista_cadeiras(&cadeiras_cadastradas);
+	libera_lista_turmas(&turmas_cadastradas);
 
 	return 0;
 }

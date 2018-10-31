@@ -15,8 +15,8 @@ int esta_vazia(arvore *a) {
 
 void imprime(arvore *a) {
 	if (!esta_vazia(a)) {
-		printf("valor = %d\n", a->valor);
 		imprime(a->esq);
+		printf("valor = %d\n", a->valor);
 		imprime(a->dir);
 	}
 }
@@ -63,20 +63,6 @@ int existe_valor2(int valor, arvore *a) {
 	}
 }
 
-// int conta_folhas(arvore *a) {
-// 	int cont = 0;
-
-// 	if (esta_vazia(a) == 1) {
-// 		return cont;
-// 	} else{
-// 		cont++;
-// 		cont = cont + conta_folhas(a->esq);
-// 		cont = cont + conta_folhas(a->dir);
-// 	}
-
-// 	return cont;
-// }
-
 int conta_folhas(arvore *a) {
 	if (esta_vazia(a) == 0){
 		return 1+conta_folhas(a->esq)+conta_folhas(a->dir);
@@ -84,27 +70,6 @@ int conta_folhas(arvore *a) {
 		return 0;
 	}
 }
-
-// int sao_iguais(arvore *a, arvore *b) {
-// 	if (esta_vazia(a) == 1 && esta_vazia(b) == 1) {
-// 		return 1;
-// 	}else if(esta_vazia(a) == 1 || esta_vazia(b) == 1) {
-// 		return 0;
-// 	}else{
-// 		if (a->valor != b->valor) {
-// 			return 0;
-// 		}else{
-// 			if (sao_iguais(a->esq, b->esq) == 0)
-// 				return 0;
-
-// 			if (sao_iguais(a->dir, b->dir) == 0)
-// 				return 0;
-
-// 			return 1;
-// 		}	
-// 	}
-// 	return 1;
-// }
 
 int sao_iguais(arvore *a, arvore *b) {
 	return ((esta_vazia(a) && esta_vazia(b)) || (!esta_vazia(a) && !esta_vazia(b) && a->valor == b->valor && sao_iguais(a->esq, b->esq) && sao_iguais(a->dir, b->dir)));
@@ -114,18 +79,10 @@ arvore *insere_ordenado(int valor, arvore *a) {
 	if (esta_vazia(a) == 1) {
 		a = cria_arvore(valor, cria_vazia(), cria_vazia());
 	}else{
-		if (valor <= a->valor) {
-			if (esta_vazia(a->esq) == 1) {
-				a->esq = cria_arvore(valor, cria_vazia(), cria_vazia());
-			}else{
-				insere_ordenado(valor, a->esq);
-			}
+		if (valor < a->valor) {
+			a->esq = insere_ordenado(valor, a->esq);
 		} else {
-			if (esta_vazia(a->dir) == 1) {
-				a->dir = cria_arvore(valor, cria_vazia(), cria_vazia());
-			}else{
-				insere_ordenado(valor, a->dir);
-			}
+			a->dir = insere_ordenado(valor, a->dir);
 		}	
 	}
 	return a;

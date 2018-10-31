@@ -269,7 +269,6 @@ void exclui_inicio_lista_faltas(struct l_descr_falta *lista) {
 }
 
 void exclui_fim_lista_faltas(struct l_descr_falta *lista, struct falta *anterior) {
-	// struct falta *aux = lista->fim;
 	free(lista->fim);
 	anterior->proximo = NULL;
 	lista->fim = anterior;
@@ -1504,7 +1503,6 @@ void exclui_aluno(struct l_descr_aluno *lista, struct l_descr_turma *lista_turma
 			while (aux != NULL) {
 				struct falta *aux2 = aux->lista_faltas->inicio;
 				while (aux2 != NULL) {
-					//verifica matricula do aluno no if e dentro da funcao
 					if (aux2->aluno->matricula == matricula) {
 						exclui_falta_aluno(aux->lista_faltas, matricula);
 					}

@@ -49,9 +49,7 @@ int sao_iguais(struct l_descr *lista1, struct l_descr *lista2) {
 	} else {
 		if (esta_vazia(lista1) == 1 && esta_vazia(lista2) == 1) {
 			return 1;
-		} else if (esta_vazia(lista1) == 1 && esta_vazia(lista2) == 0){
-			return 0;
-		}else if (esta_vazia(lista1) == 0 && esta_vazia(lista2) == 1){
+		} else if (esta_vazia(lista1) != esta_vazia(lista2)){
 			return 0;
 		}else{
 			if (lista1->inicio->valor != lista2->inicio->valor) {
@@ -63,13 +61,12 @@ int sao_iguais(struct l_descr *lista1, struct l_descr *lista2) {
 				struct no *aux2 = lista2->inicio;
 				while(aux != NULL && aux2 != NULL) {
 					if (aux->valor == aux2->valor) {
-						printf("%d\n", aux->valor);
-						printf("%d\n", aux2->valor);
 						aux = aux->proximo;
 						aux2 = aux2->proximo;
 						cont++;
+					} else{
+						break;
 					}
-					break;
 				}
 
 				if (cont == lista1->cont) {
@@ -285,10 +282,8 @@ int comuns(struct l_descr *lista1, struct l_descr *lista2) {
 			return 0;
 	}else {
 		while (aux != NULL) {
-			if (valor_na_lista(lista2, aux->valor) == 1){
-				if (valor_na_lista(&l, aux->valor) == 0){
-					insere_inicio(&l, aux->valor);
-				}
+			if (valor_na_lista(lista2, aux->valor) == 1 && valor_na_lista(&l, aux->valor) == 0){
+				insere_inicio(&l, aux->valor);
 			}
 			aux = aux->proximo;
 		}
@@ -320,18 +315,15 @@ int eh_inversa(struct l_descr *lista1, struct l_descr *lista2) {
 		struct no *aux = lista1->inicio;
 		struct no *aux2 = lista2->fim;
 
-		if (aux->valor != aux2->valor) {
-			return 0;
-		} else {
-			while(aux != NULL) {		
-				if (aux->valor != aux2->valor) {
-					return 0;
-				}
-				aux = aux->proximo;
-				aux2 = aux2->anterior;
+		while(aux != NULL) {		
+			if (aux->valor != aux2->valor) {
+				return 0;
 			}
-			return 1;
+			aux = aux->proximo;
+			aux2 = aux2->anterior;
 		}
+		return 1;
+		
 	}
 }
 
@@ -404,13 +396,13 @@ void remover_nos_impares(struct l_descr *l) {
 	struct no *aux = l->inicio;
 
 	while(aux != NULL) {
+		aux = aux->proximo;
 		cont++;
 		if (cont%2 != 0) {
 			remove_indice(l, cont-cont2);
 			cont2++;
 			l->cont--;
 		}
-		aux = aux->proximo;
 	}
 }
 
@@ -466,7 +458,11 @@ void copia_inv(descr_circular *lista1, descr_circular *lista2) {
 	int cont = 0;
 
 	if (esta_vazia_circular(lista2) == 0) {
-		aux = lista1->inicio->anterior;
+		if (esta_vazia_circular(lista1) == 0) {
+			aux = lista1->inicio->anterior;
+		}else{
+			aux = malloc(sizeof(struct no));
+		}
 		aux2 = lista2->inicio->anterior;
 
 		while (cont < lista2->cont) {
@@ -492,6 +488,7 @@ void elimina_nos_pares(descr_circular *l) {
 		printf("Lista vazia\n");
 	}else{
 		while (cont < cont_lista) {
+			aux = aux->proximo;
 			cont++;
 			if (cont%2 == 0) {
 				if (aux->proximo == NULL) {
@@ -503,7 +500,6 @@ void elimina_nos_pares(descr_circular *l) {
 				free(aux);
 				l->cont--;
 			}
-			aux = aux->proximo;
 		}
 	}	
 }
@@ -555,22 +551,22 @@ int main() {
 	// inicializa_lista(&lista2);
 	// inicializa_lista(&listal);
 
- //    insere_inicio(&lista1, 25);
- //    insere_inicio(&lista1, 30);
- //    insere_inicio(&lista1, 13);
- //    insere_inicio(&lista1, 10);
- //    insere_inicio(&lista1, 4);
+    // insere_inicio(&lista1, 20);
+    // insere_inicio(&lista1, 30);
+    // insere_inicio(&lista1, 13);
+    // insere_inicio(&lista1, 10);
+    // insere_inicio(&lista1, 4);
 
- //    insere_inicio(&lista2, 4);
- //    insere_inicio(&lista2, 10);
- //    insere_inicio(&lista2, 13);
- //    insere_inicio(&lista2, 30);
- //    insere_inicio(&lista2, 25);
+    // insere_inicio(&lista2, 20);
+    // insere_inicio(&lista2, 30);
+    // insere_inicio(&lista2, 13);
+    // insere_inicio(&lista2, 10);
+    // insere_inicio(&lista2, 4);
 
- //    printf("LISTA 1\n");
- //    imprime_lista(&lista1);
- //    printf("LISTA 2\n");
- //    imprime_lista(&lista2);
+    // printf("LISTA 1\n");
+    // imprime_lista(&lista1);
+    // printf("LISTA 2\n");
+    // imprime_lista(&lista2);
 
     // if (sao_iguais(&lista1, &lista2) == 1) {
     // 	printf("listas iguais\n");

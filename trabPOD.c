@@ -12,7 +12,6 @@ typedef struct bucket{
     int* balde;
 }Bucket;
 
-
 void heapSort(int vet[], int tam) {
     int i = tam / 2, pai, filho, t;
     while(true) {
